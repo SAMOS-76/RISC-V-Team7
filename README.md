@@ -1,6 +1,14 @@
 # RISC-V CPU Group 7
 <img width="2012" height="950" alt="image" src="https://github.com/user-attachments/assets/fe026b38-4e57-4b59-a333-0dfa03161c82" />
 
+
+| Person   | Task | Progress |
+| -------- | ------- | ------- |
+| Samuel  | TBC    | ⏳    |
+| Archie | TBC     | ⏳     |
+| Adil    | TBC    | ⏳    |
+| Louis    | TBC    | ⏳    |
+
 ## Architecture of RISC-V CPU
 
 To help you progress quickly, here is the top-level block diagram for this CPU. Note the following:
@@ -19,9 +27,3 @@ To help you progress quickly, here is the top-level block diagram for this CPU. 
 3. Comments about any design decisions you made that are not obvious.
 4. A reflection on what you might do differently if you were to start again.
 
-| Person   | Task | Progress |
-| -------- | ------- | ------- |
-| Samuel  | TBC    | ⏳    |
-| Archie | TBC     | ⏳     |
-| Adil    | TBC    | ⏳    |
-| Louis    | TBC    | ⏳    |
