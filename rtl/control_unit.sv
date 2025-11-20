@@ -1,6 +1,7 @@
 module control_unit (
     input  logic [31:0] instr,
-    input  logic        Zero, 
+    input  logic        alu_zero,
+    input  logic        alu_result_0,
     
     // Original signals
     output logic [3:0]  ALUControl,
@@ -29,6 +30,7 @@ module control_unit (
     assign funct7_5 = instr[30];
 
     logic [1:0] aluOp;
+    logic branch_taken;
 
     always_comb begin
         RegWrite    = 1'b0;    // Reg write enable
@@ -42,7 +44,6 @@ module control_unit (
         Jump        = 1'b0;    // Jump flag
         branchType  = 3'b000;  // Type of branch BEQ BGT etc.
         aluOp       = 2'b00;   // Intermediate signal decoded later
-        PCSrc       = 1'b0;    // PCSrc mux signal
 
         case (opcode)
             7'b0110011: begin  // R type
@@ -140,5 +141,15 @@ module control_unit (
         .opcode(opcode),
         .aluControl(ALUControl)
     );
+
+    branch_comparator branch_comp (
+        .zero(alu_zero),
+        .alu_result_0(alu_result_0),
+        .branchType(branchType),
+        .Branch(Branch),
+        .branch_taken(branch_taken)
+    );
+
+    assign PCSrc = Jump | (Branch & branch_taken);
 
 endmodule
