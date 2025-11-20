@@ -10,8 +10,7 @@ module datamem #(parameter mem_size = 512)(
 
     input rw_type type_control,
 
-    input logic [31:0] write_addr,
-    input logic [31:0] read_addr,
+    input logic [31:0] addr,
 
     input logic [31:0] din,
 
@@ -28,18 +27,18 @@ always_ff @(posedge clk) begin
     if(write_en) begin
         case(type_control)
         
-            b: memory[write_addr] <= din[7:0];
+            b: memory[addr] <= din[7:0];
             
             half: begin
-                memory[write_addr] <= din[7:0];
-                memory[write_addr+1] <= din[15:8];
+                memory[addr] <= din[7:0];
+                memory[addr+1] <= din[15:8];
             end
             
             word: begin
-                memory[write_addr] <= din[7:0];
-                memory[write_addr+1] <= din[15:8];
-                memory[write_addr+2] <= din[23:16];
-                memory[write_addr+3] <= din[31:24];
+                memory[addr] <= din[7:0];
+                memory[addr+1] <= din[15:8];
+                memory[addr+2] <= din[23:16];
+                memory[addr+3] <= din[31:24];
             end
         endcase
     end
@@ -48,29 +47,12 @@ always_ff @(posedge clk) begin
 end
 
 
-always_comb begin
-
-    case(type_control)
-    
-        b: dout = {24'b0,memory[read_addr]};
-        
-        half: begin
-            
-            dout = {16'b0,memory[read_addr+1],memory[read_addr]};
-        end
-        
-        word: begin
-            dout = {memory[read_addr+3],memory[read_addr+2],memory[read_addr+1],memory[read_addr]};
-            
-            
-            
-        end
-    endcase
+assign dout = {memory[addr+3],memory[addr+2],memory[addr+1],memory[addr]};
 
 
 
 
-end
+
 
 
 
