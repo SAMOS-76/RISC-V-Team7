@@ -14,3 +14,5 @@ always_comb begin
         default: imm_ext = 32'b0;
     endcase
 end
+
+endmodule
