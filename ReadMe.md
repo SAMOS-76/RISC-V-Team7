@@ -26,4 +26,3 @@ To help you progress quickly, here is the top-level block diagram for this CPU. 
 2. A short narrative to state the challenges you encountered as a team.
 3. Comments about any design decisions you made that are not obvious.
 4. A reflection on what you might do differently if you were to start again.
-

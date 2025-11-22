@@ -1,3 +1,7 @@
+/* verilator lint_off UNUSED */
+//included to stop errors from unused INSTR bits 
+//is funct7 dead code?
+
 module control_unit (
     input  logic [31:0] instr,
     input  logic        alu_zero,     // ALU signal for if the result is 0
@@ -80,6 +84,7 @@ module control_unit (
                         memSize     = 2'b01;
                         memUnsigned = 1'b1;
                     end
+                    default: ; // NOP - silence warning -- maybe just need to be 0000?
                 endcase
             end
 
@@ -100,6 +105,7 @@ module control_unit (
                     3'b000: memSize = 2'b00;
                     3'b001: memSize = 2'b01;
                     3'b010: memSize = 2'b10;
+                    default: ; // NOP - silence warning
                 endcase
             end
 
@@ -130,6 +136,7 @@ module control_unit (
                 ImmSrc    = 3'b100;  // J-type immediate
                 Jump      = 1'b1;   
             end
+            default: ; //NOP - silence warning
         endcase
     end
 
