@@ -1,7 +1,7 @@
 typedef enum logic [1:0] {
     b = 2'b00,
     half = 2'b01,
-    word = 2'b11
+    word = 2'b10
 } rw_type;
 
 module datamem #(parameter mem_size = 512)(
