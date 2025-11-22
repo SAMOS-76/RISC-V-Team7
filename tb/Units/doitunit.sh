@@ -14,7 +14,7 @@ fi
 #define variables for paths and names
 #    CRITICAL: Use relative path (../) for TEST_SOURCE so make works inside obj_dir
 RTL_SOURCE="../../rtl/${MODULE}.sv"
-TEST_SOURCE="../verify_${MODULE}.cpp" 
+TEST_SOURCE="../${MODULE}_verify.cpp" 
 TOP_MODULE="V${MODULE}"
 
 #cleanup
