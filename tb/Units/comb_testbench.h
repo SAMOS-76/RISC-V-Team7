@@ -50,9 +50,15 @@ protected:
 
 public:
     // simple tick: No clock, just time increment
-    void tick() {
+    void tick(){
         top_->eval();
         tfp_->dump(context_->time());
         context_->timeInc(1);
+    }
+
+    void runSimulation(int cycles = 1){
+        for (int i = 0; i < cycles; i++){
+            tick(); 
+        }
     }
 };

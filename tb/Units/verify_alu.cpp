@@ -22,6 +22,7 @@ TEST_F(AluTestbench, SubtractionTest){
 
 TEST_F(AluTestbench, NegativeResult){
     // 10 - 20 = -10 (represented as unsigned 32-bit in C++
+    //be explicit with expected type
     evalALU(ALU_SUB, 10, 20);
     uint32_t expected = -10; 
     EXPECT_EQ(top_->result, expected);
@@ -29,7 +30,7 @@ TEST_F(AluTestbench, NegativeResult){
 
 TEST_F(AluTestbench, SetLessThanSigned){
     // -10 < 5 ? Yes: 1
-    // Note: casting to int32_t to ensure C++ handles the negative literal correctly for input
+    //casting int32_t to ensure C++ handles the negative literal correctly for input
     evalALU(ALU_SLT, (uint32_t)-10, 5);
     EXPECT_EQ(top_->result, 1);
     

@@ -2,43 +2,41 @@
 
 // 1: Select your Base Class
 // Option A: For Sequential Logic (CPU, RegFile, Cache, Control)
-//           'tick()' function toggles the clock.
+//           Inherits 'tick()' (clock toggle) and 'runSimulation(n)'.
 #include "clocked_testbench.h" 
 
-
 // Option B: For Combinatorial Logic (ALU, Mux, SignExtend)
-//           'tick()' that simply increments time (no clock).
 // #include "comb_testbench.h" 
 
-// STEP 2: Include your Verilated Model
-//#include "V[YOUR_MODULE_NAME].h" 
+// 2: Include Verilated Model
+// #include "V[YOUR_MODULE_NAME].h" 
 
-//define the Class
-//inherit from ClockedTestbench or CombTestbench depending on step 1.
+// 3: Define the Class
+// Inherit from ClockedTestbench or CombTestbench depending on Step 1.
 class [YOUR_MODULE_NAME]Testbench : public ClockedTestbench<V[YOUR_MODULE_NAME]>{
 public:
-    // 4: Add Helper Functions
-
-    // example - -set an opcode
+    //4: Add Helper Functions
+    // Eg: Set an Input
     void setOpcode(uint32_t op){
         top_->opcode = op; 
     }
 
-    // Eexmaple -read an output
-    ///always call eval() before reading to ensure logic is updated.
+    // Eg: Read an Output
+    // Always call eval() before reading to ensure logic is updated.
     uint32_t getResult(){
         top_->eval();
         return top_->result;
     }
 
-    //(Input + Clock)
-    // Since we inherited from ClockedTestbench, 'tick()' toggles the clock.
+    // Complex Helper (Input + Clock)
+    //we use 'runSimulation(1)' (inherited from ClockedTestbench) for precision.
     void writeToMemory(uint32_t addr, uint32_t data){
         top_->addr = addr;
         top_->data_in = data;
         top_->we = 1;
         
-        tick(); // Clock edge
+        // Run for 1 cycle to latch data
+        runSimulation(1); 
         
         top_->we = 0;
     }

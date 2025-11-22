@@ -5,16 +5,9 @@
 
 class RegFileTestbench : public ClockedTestbench<Vregfile>{
 public:
-    
-    void runSimulation(int cycles = 1){
-        for (int i = 0; i < cycles; i++){
-            tick(); 
-        }
-    }
-
     void reset(){
         top_->rst = 1;
-        runSimulation(5); // Hold reset for 5 cycles
+        runSimulation(5); 
         top_->rst = 0;
         top_->eval();
     }
@@ -24,8 +17,7 @@ public:
         top_->din = data;
         top_->write_en = 1;
         
-        //single tick here for precision
-        tick(); 
+        runSimulation(1); // single tick for precision
         
         top_->write_en = 0;
     }
