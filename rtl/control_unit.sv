@@ -1,3 +1,7 @@
+/* verilator lint_off UNUSED */
+//included to stop errors from unused INSTR bits 
+//is funct7 dead code?
+
 module control_unit (
     input  logic [31:0] instr,
     input  logic        alu_zero,     // ALU signal for if the result is 0
