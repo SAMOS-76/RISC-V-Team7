@@ -20,10 +20,17 @@ module datamem #(parameter mem_size = 512)(
 
 );
 
+//memsize seems small / wrong 
+//0x00000000 – 0x00001FFF  ; see memory map (8 KB)?? 
 
  logic [7:0] memory [mem_size - 1:0];
 
+//write port - bounds checking?;
+//eg if near end addr = 511 ... addr+3 our of bounds 
 
+// alignment chekcing for half/word stores ? Half: 2bytes / word: 4byte alignment? 
+// different data sizes must start at addresses that are multiples of their size: 
+//addr % 2/4 = 0
 always_ff @(posedge clk) begin
 
     if(write_en) begin
@@ -51,7 +58,7 @@ always_ff @(posedge clk) begin
 
 end
 
-
+//same - bounds checking?? alignment checking? 
 always_comb begin
     case(type_control)
     
