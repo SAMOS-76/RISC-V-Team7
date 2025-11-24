@@ -1,6 +1,5 @@
 /* verilator lint_off UNUSED */
-//included to stop errors from unused INSTR bits 
-//is funct7 dead code?
+//included to stop errors from unused INSTR bits
 
 module control_unit (
     input  logic [31:0] instr,
@@ -25,12 +24,10 @@ module control_unit (
 
     logic [6:0] opcode;
     logic [2:0] funct3;
-    logic [6:0] funct7;
     logic       funct7_5;  // Only need bit 5 of funct7
 
     assign opcode   = instr[6:0];
     assign funct3   = instr[14:12];
-    assign funct7   = instr[31:25];
     assign funct7_5 = instr[30];
 
     logic [1:0] aluOp;
