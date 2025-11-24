@@ -2,39 +2,56 @@ module top #(
     DATA_WIDTH = 32
 ) (
     input   logic clk,
-    input   logic rst, 
+    input   logic rst 
 );
 
-    logic [1:0] PCSrc,
+    logic [1:0] PCSrc;
+    logic [DATA_WIDTH-1:0] ALU_result;
+    logic [DATA_WIDTH-1:0] imm_ext;
+    logic [DATA_WIDTH-1:0] instr;
+    logic [DATA_WIDTH-1:0] pc_out4;
+
+    logic [1:0] result_src;
+    logic [DATA_WIDTH-1:0] result_final;
+    logic write_en;
+    logic [3:0] alu_control;
+    logic alu_srcA;
+    logic alu_srcB;
+    logic zero;
+    logic sign_ext_flag;
+    logic [DATA_WIDTH-1:0] r_out1;
+    logic [DATA_WIDTH-1:0] r_out2;
+    logic [1:0] type_control;
+
 
 
     fetch fetch(
         .clk(clk),
         .rst(rst),
         .PCSrc(PCSrc),
-        .Result(),
-        .ImmExt(),
-        .Instr(),
-        .pc_out4()
+        .Result(ALU_result),
+        .ImmExt(imm_ext),
+        .Instr(instr),
+        .pc_out4(pc_out4),
+        .pc_out(pc_out)
     );
 
     decode decode(
         .clk(clk),
         .rst(rst),
-        .instr(),
-        .data_in(),
+        .instr(instr),
+        .data_in(result_final),
         .PCSrc(PCSrc),
-        .result_src(),
-        .mem_write(),
-        .alu_control(),
-        .addr_mode(),
-        .alu_srcA(),
-        .alu_srcB(),
-        .zero(),
-        .sign_ext_flag(),
-        .imm_ext(),
-        .r_out1(),
-        .r_out2(),
+        .result_src(result_src),
+        .mem_write(write_en),
+        .alu_control(alu_control),
+        .alu_srcA(alu_srcA),
+        .alu_srcB(alu_srcB),
+        .zero(zero),
+        .sign_ext_flag(sign_ext_flag),
+        .imm_ext(imm_ext),
+        .r_out1(r_out1),
+        .r_out2(r_out2),
         .type_control()
     );
 
@@ -42,19 +59,19 @@ module top #(
         .clk(clk),
         .rst(rst),
         .pc(),
-        .pc4(),
-        .zero(),
-        .alu_control(),
-        .alu_srcA(),
-        .alu_srcB(),
-        .r_out1(),
-        .r_out2(),
-        .imm_ext(),
-        .addr_mode(),
-        .write_en(),
+        .pc4(pc_out4),
+        .zero(zero),
+        .alu_control(alu_control),
+        .alu_srcA(alu_srcA),
+        .alu_srcB(alu_srcB),
+        .sign_ext_flag(sign_ext_flag),
+        .r_out1(r_out1),
+        .r_out2(r_out2),
+        .imm_ext(imm_ext),
+        .write_en(write_en),
         .type_control(),
-        .result_src(),
-        .result()
+        .result_src(result_src),
+        .result(result_final)
     );
 
 

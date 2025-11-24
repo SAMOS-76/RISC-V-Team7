@@ -10,10 +10,9 @@ module decode #(
     output logic [1:0] result_src,
     output logic mem_write,
     output logic [3:0] alu_control,
-    output logic addr_mode,
     output logic alu_srcA,
     output logic alu_srcB,
-    output logic zero,
+    input logic zero,
     output logic sign_ext_flag,
     output logic [DATA_WIDTH-1:0] imm_ext,
     output logic [DATA_WIDTH-1:0] r_out1,
@@ -23,9 +22,16 @@ module decode #(
 
     logic write_en;
     logic [2:0] imm_src;
+    logic [4:0] a1;
+    logic [4:0] a2;
+    logic [4:0] a3;
+
+    assign a1 = instr[19:15];
+    assign a2 = instr[24:20];
+    assign a3 = instr[11:7];
 
     control_unit control_unit(
-        .instr(insr),
+        .instr(instr),
         .alu_zero(zero),
         .ALUControl(alu_control),
         .ALUSrcB(alu_srcB),
@@ -43,15 +49,12 @@ module decode #(
         .clk(clk),
         .write_en(write_en),
         .rst(rst),
-
-        .a1(),
-        .a2(),
-        .a3(),
-
+        .a1(a1),
+        .a2(a2),
+        .a3(a3),
         .din(data_in),
-
-        .orout1(r_out1),
-        .orout2(r_out2)
+        .rout1(r_out1),
+        .rout2(r_out2)
     );
 
     sign_extend sign_extend(

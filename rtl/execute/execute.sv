@@ -7,16 +7,17 @@ module execute #(
     input logic [DATA_WIDTH-1:0] pc,
     input logic [DATA_WIDTH-1:0] pc4,
 
-    input logic zero,
+    output logic zero,
     input logic [3:0] alu_control,
     input logic alu_srcA,
     input logic alu_srcB,
+
+    input logic sign_ext_flag,
 
     input logic [DATA_WIDTH-1:0] r_out1,
     input logic [DATA_WIDTH-1:0] r_out2,
     input logic [DATA_WIDTH-1:0] imm_ext,
 
-    input logic addr_mode,
     input logic write_en,
     input logic [1:0] type_control,
 
@@ -49,6 +50,7 @@ module execute #(
         .in1(read_data),
         .in2(pc4),
         .in3(imm_ext),
+        .sel(result_src),
         .out(result)
     );
 
@@ -61,11 +63,12 @@ module execute #(
     );
 
     datamem datamem(
+        .clk(clk),
+        .write_en(write_en),
         .type_control(type_control),
         .addr(ALU_out),
         .din(r_out2),
-        // No sign extend flag
-        .sign_ext(),
+        .sign_ext(sign_ext_flag),
         .dout(read_data)
     );
     

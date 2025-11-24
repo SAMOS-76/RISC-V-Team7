@@ -8,10 +8,10 @@ module fetch #(
     input logic [DATA_WIDTH-1:0] ImmExt, //Input from sign extend
 
     output logic [DATA_WIDTH-1:0] Instr,
-    output logic [DATA_WIDTH-1:0] pc_out4
+    output logic [DATA_WIDTH-1:0] pc_out4,
+    output logic [DATA_WIDTH-1:0] pc_out
 );
 
-    logic [DATA_WIDTH-1:0] PC;
     logic [DATA_WIDTH-1:0] PC_next;
     logic [DATA_WIDTH-1:0] PC_target;
 
@@ -26,7 +26,7 @@ module fetch #(
 
     adder PC_plus4(
         .in0(PC),
-        .in1(3'b100),
+        .in1(32'd4),
         .out(pc_out4)
     );
 
@@ -34,18 +34,18 @@ module fetch #(
         .in0(ImmExt),
         .in1(PC),
         .out(PC_target)
-    )
+    );
 
     pc_reg PC_reg(
         .clk(clk),
         .rst(rst),
         .pc_next(PC_next),
-        .pc_out(PC)
-    )
+        .pc_out(pc_out)
+    );
 
     instrMem instrMem(
         .addr(PC),
         .instr(Instr)
-    )
+    );
     
 endmodule
