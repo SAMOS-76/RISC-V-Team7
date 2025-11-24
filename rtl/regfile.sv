@@ -39,6 +39,7 @@ always_ff @(posedge clk, posedge rst) begin
 
 end
 
+// eg add RAW hazard detection - bypassing 
 // likely need updating to avoid pipe hazards eventually
 //overide x0 READS -HARD
 assign rout1 = (a1 == 5'b0) ? 32'b0 : register[a1];
