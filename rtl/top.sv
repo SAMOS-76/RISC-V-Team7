@@ -10,6 +10,7 @@ module top #(
     logic [DATA_WIDTH-1:0] imm_ext;
     logic [DATA_WIDTH-1:0] instr;
     logic [DATA_WIDTH-1:0] pc_out4;
+    logic [DATA_WIDTH-1:0] pc_out;
 
     logic [1:0] result_src;
     logic [DATA_WIDTH-1:0] result_final;
@@ -52,13 +53,13 @@ module top #(
         .imm_ext(imm_ext),
         .r_out1(r_out1),
         .r_out2(r_out2),
-        .type_control()
+        .type_control(type_control)
     );
 
     execute execute(
         .clk(clk),
         .rst(rst),
-        .pc(),
+        .pc(pc_out),
         .pc4(pc_out4),
         .zero(zero),
         .alu_control(alu_control),
@@ -69,9 +70,10 @@ module top #(
         .r_out2(r_out2),
         .imm_ext(imm_ext),
         .write_en(write_en),
-        .type_control(),
+        .type_control(type_control),
         .result_src(result_src),
-        .result(result_final)
+        .result(result_final),
+        .ALU_out(ALU_result)
     );
 
 
