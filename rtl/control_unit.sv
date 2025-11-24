@@ -1,3 +1,6 @@
+/* verilator lint_off UNUSED */
+//included to stop errors from unused INSTR bits
+
 module control_unit (
     input  logic [31:0] instr,
     input  logic        alu_zero,     // ALU signal for if the result is 0
@@ -21,12 +24,10 @@ module control_unit (
 
     logic [6:0] opcode;
     logic [2:0] funct3;
-    logic [6:0] funct7;
     logic       funct7_5;  // Only need bit 5 of funct7
 
     assign opcode   = instr[6:0];
     assign funct3   = instr[14:12];
-    assign funct7   = instr[31:25];
     assign funct7_5 = instr[30];
 
     logic [1:0] aluOp;
@@ -80,6 +81,7 @@ module control_unit (
                         memSize     = 2'b01;
                         memUnsigned = 1'b1;
                     end
+                    default: ; // NOP - silence warning -- maybe just need to be 0000?
                 endcase
             end
 
@@ -100,6 +102,7 @@ module control_unit (
                     3'b000: memSize = 2'b00;
                     3'b001: memSize = 2'b01;
                     3'b010: memSize = 2'b10;
+                    default: ; // NOP - silence warning
                 endcase
             end
 
@@ -130,6 +133,7 @@ module control_unit (
                 ImmSrc    = 3'b100;  // J-type immediate
                 Jump      = 1'b1;   
             end
+            default: ; //NOP - silence warning
         endcase
     end
 

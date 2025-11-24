@@ -1,7 +1,7 @@
 typedef enum logic [1:0] {
     b = 2'b00,
     half = 2'b01,
-    word = 2'b11
+    word = 2'b10
 } rw_type;
 
 module datamem #(parameter mem_size = 512)(
@@ -13,6 +13,8 @@ module datamem #(parameter mem_size = 512)(
     input logic [31:0] addr,
 
     input logic [31:0] din,
+
+    input logic sign_ext,
 
     output logic [31:0] dout
 
@@ -40,14 +42,35 @@ always_ff @(posedge clk) begin
                 memory[addr+2] <= din[23:16];
                 memory[addr+3] <= din[31:24];
             end
+
         endcase
     end
+
+
 
 
 end
 
 
-assign dout = {memory[addr+3],memory[addr+2],memory[addr+1],memory[addr]};
+always_comb begin
+    case(type_control)
+    
+        b: begin
+            dout = {24{sign_ext & memory[addr][7]},memory[addr]};
+        end
+        half: begin
+            dout = {16{sign_ext & memory[addr+1][7]},memory[addr+1],memory[addr]};           
+        end
+        
+        word: begin
+            dout = {memory[addr+3],memory[addr+2],memory[addr+1],memory[addr]}; 
+        end
+
+        default: dout = 32'b0;
+    endcase
+
+
+end
 
 
 

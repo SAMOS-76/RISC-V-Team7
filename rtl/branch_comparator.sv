@@ -26,6 +26,7 @@ module branch_comparator (
                 BGE:  branch_taken = ~alu_result_0;  
                 BLTU: branch_taken = alu_result_0;   
                 BGEU: branch_taken = ~alu_result_0;
+                default: branch_taken = 1'b0; //guarantee logic
             endcase
         end
     end
