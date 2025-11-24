@@ -1,32 +1,13 @@
-//before
 module instrMem(
-    input logic [9:0]   addr,   
-    output logic [31:0] instr
-);
-
-logic [31:0] instructions [2**10-1:0];
-
-initial begin
-    $readmemh("pdf.hex", instructions); // probability density function test instructions loaded
-end
-
-assign instr = instructions[addr];
-
-endmodule
-
-//Adjusted: byte addressing; memory map allocation; addr input //
-module instrMem(
-    input  logic [31:0] addr, // full 32-bit CPU address comes in from PC
+    input  logic [31:0] addr,
     output logic [31:0] instr
 );
 
 //memory map says 0xBFC00000 -> 0xBFC00FFF ... 4KB alloced
 logic [7:0] instructions [2**12-1:0]; 
-//double check CPU instrs are properly mapped to required range
-// addr = PC - 32'hBFC00000
-// simple: I believe this is done by the assembler which shows addresses starting index 0
+
 //  PC==0 in simulation corresponds to the linked address 0xBFC0000
-//ie by Linker - not rtl
+//offset done by Linker - not rtl i think
 
 initial begin
     $readmemh("pdf.hex", instructions); // probability density function test instructions loaded
