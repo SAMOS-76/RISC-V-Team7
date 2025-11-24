@@ -6,14 +6,13 @@ module control_unit (
     input  logic        alu_zero,     // ALU signal for if the result is 0
     input  logic        alu_result_0, // LSB of ALU result
     
-    // Original signals
     output logic [3:0]  ALUControl,
-    output logic        ALUSrc,       
+    output logic        ALUSrcB,
+    output logic        ALUSrcA,
     output logic        MemWrite,     
     output logic        RegWrite,     
     output logic [1:0]  ResultSrc,  
     output logic [2:0]  ImmSrc,
-
     output logic [1:0]  memSize,      // Memory access size
     output logic        memUnsigned,  // Unsigned load flag
     output logic        Branch,       // Branch instruction flag
@@ -36,7 +35,8 @@ module control_unit (
     always_comb begin
         RegWrite    = 1'b0;    // Reg write enable
         ResultSrc   = 2'b00;   // ALU or Mem or PC+4 to register
-        ALUSrc      = 1'b0;    // Reg or imm values
+        ALUSrcA     = 1'b0;     // Reg or PC value (1 for only AUIPC)
+        ALUSrcB     = 1'b0;    // Reg or imm values
         MemWrite    = 1'b0;    // Mem write enable
         memSize     = 2'b10;   // byte or half word or word (word by default)
         memUnsigned = 1'b0;    // Default is signed integer
@@ -50,13 +50,13 @@ module control_unit (
             7'b0110011: begin  // R type
                 RegWrite  = 1'b1;
                 ResultSrc = 2'b00;  // ALU result
-                ALUSrc    = 1'b0;   // Use reg values
+                ALUSrcB    = 1'b0;   // Use reg values
                 aluOp     = 2'b10;
             end
 
             7'b1100011: begin  // B type (Branches)
                 Branch     = 1'b1;      // Branch flag set HIGH
-                ALUSrc     = 1'b0;      
+                ALUSrcB     = 1'b0;      
                 ImmSrc     = 3'b010;    // B-type imm
                 aluOp      = 2'b01;
                 branchType = funct3;    // Used by comparator
@@ -65,7 +65,7 @@ module control_unit (
             7'b0000011: begin //I type (Load instructions)
                 RegWrite  = 1'b1;
                 ResultSrc = 2'b01;
-                ALUSrc    = 1'b1;
+                ALUSrcB    = 1'b1;
 
                 case(funct3)
                     3'b000: memSize = 2'b00;
@@ -88,7 +88,7 @@ module control_unit (
             7'b0010011: begin // I type (ALU)
                 RegWrite  = 1'b1;
                 ResultSrc = 2'b00;
-                ALUSrc    = 1'b1;
+                ALUSrcB    = 1'b1;
                 ImmSrc    = 3'b000;
                 aluOp     = 2'b10;
             end
@@ -96,7 +96,7 @@ module control_unit (
             7'b0100011: begin // S type (store instruction)
                 ImmSrc    = 3'b001;
                 MemWrite  = 1'b1;
-                ALUSrc    = 1'b1;
+                ALUSrcB    = 1'b1;
 
                 case(funct3)
                     3'b000: memSize = 2'b00;
@@ -107,15 +107,16 @@ module control_unit (
             end
 
             7'b0010111: begin // U type (add upper immediate to PC)
-                ImmSrc   = 3'b100;
+                ImmSrc   = 3'b011;
                 RegWrite = 1'b1;
-                ALUSrc   = 1'b1;
+                ALUSrcA = 1'b1;
+                ALUSrcB   = 1'b1;
             end
 
-            7'b0110111: begin // Load upper immediate
+            7'b0110111: begin // U type (Load upper immediate)
                 RegWrite  = 1'b1;    
                 ResultSrc = 2'b00;   
-                ALUSrc    = 1'b1;    
+                ALUSrcB    = 1'b1;    
                 ImmSrc    = 3'b011;  
                 aluOp     = 2'b00;
             end
@@ -123,7 +124,7 @@ module control_unit (
             7'b1100111: begin // I type jump
                 RegWrite  = 1'b1;
                 ResultSrc = 2'b10;
-                ALUSrc    = 1'b1;     
+                ALUSrcB    = 1'b1;     
                 Jump      = 1'b1;    
             end
 
