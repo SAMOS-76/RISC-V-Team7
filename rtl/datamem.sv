@@ -20,10 +20,12 @@ module datamem #(parameter mem_size = 512)(
 
 );
 
+//memsize seems small / wrong 
+//0x00000000 – 0x00001FFF  ; see memory map (128 KB)?? 
 
  logic [7:0] memory [mem_size - 1:0];
 
-
+//bounds chhecking and byte alignment have been considered.
 always_ff @(posedge clk) begin
 
     if(write_en) begin

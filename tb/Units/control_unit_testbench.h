@@ -19,6 +19,7 @@ public:
                  opcode;
     }
 
+    //setOPS -> MakeInstr -> setInstr
     void setOpF7F3(uint32_t opcode, uint32_t funct7, uint32_t funct3){
         setInstr(makeOpF7F3(opcode, funct7, funct3));
     }

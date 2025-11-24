@@ -8,13 +8,17 @@ protected:
     }
 };
 
-TEST_F(RegFileTests, WriteAndRead){
-    // 1. Write 0x12345678 to Register 1
-    writeReg(1, 0x12345678);
-    
-    // 2. Read it back
-    EXPECT_EQ(readReg1(1), 0x12345678);
-    EXPECT_EQ(readReg2(1), 0x12345678);
+TEST_F(RegFileTests, DualWriteRead){
+    writeReg(3, 0xAAA);
+    writeReg(10, 0xBBB);
+
+    top_->a1 = 3;
+    top_->a2 = 10;
+
+    runSimulation(1);
+
+    EXPECT_EQ(readReg1(3), 0xAAA);
+    EXPECT_EQ(readReg2(10), 0xBBB);
 }
 
 TEST_F(RegFileTests, ResetBehavior){
@@ -45,12 +49,42 @@ TEST_F(RegFileTests, WriteEnableLow){
     EXPECT_EQ(readReg1(10), 0); 
 }
 
+TEST_F(RegFileTests, WriteEveryone){
+    for (int i = 1; i < 32; i++) {
+        writeReg(i, i * 0xA1A1A1A1);
+    }
+    for (int i = 1; i < 32; i++) {
+        EXPECT_EQ(readReg1(i), uint32_t(i * 0xA1A1A1A1));
+    }
+}
+
+
 TEST_F(RegFileTests, OverwriteBehavior){
     writeReg(2, 100);
     EXPECT_EQ(readReg1(2), 100);
     
     writeReg(2, 200);
     EXPECT_EQ(readReg1(2), 200);
+}
+
+//this test may change when we pipeline -pos/negedge
+TEST_F(RegFileTests, ReadDuringWriteSameReg){
+    writeReg(5, 0xAAAA5555);
+    EXPECT_EQ(readReg1(5), 0xAAAA5555);
+
+    //attempt write of new value, but read in same cycle
+    top_->a1 = 5;
+    top_->a3 = 5; 
+    top_->din = 0xDEADBEEF;
+    top_->write_en = 1;
+
+    //read before edge
+    EXPECT_EQ(readReg1(5), 0xAAAA5555);
+
+    runSimulation(1);   // posedge
+
+    // after - should be new value
+    EXPECT_EQ(readReg1(5), 0xDEADBEEF);
 }
 
 TEST_F(RegFileTests, SimulationStressTest){

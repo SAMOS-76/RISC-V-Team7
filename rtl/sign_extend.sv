@@ -1,3 +1,6 @@
+/* verilator lint_off UNUSED */
+//bits 6->0 unused
+
 module sign_extend (
     input logic [2:0] immSrc,
     input logic [31:0] instr,
