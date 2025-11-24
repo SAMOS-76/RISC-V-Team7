@@ -10,15 +10,15 @@ module regfile(
     input logic [31:0] din,
 
     output logic [31:0] rout1,
-    output logic [31:0] rout2 //watch trailing commas boys ! -eg was here 
+    output logic [31:0] rout2
 
 );
 
-//could parameterize in the future
 logic [31:0] register [31:0];
 
 
 //must reset all 32 Regs 
+// be safe for reads before writes -- as anything unitilazed will become X propgaters
 always_ff @(posedge clk, posedge rst) begin
     if(rst) begin
 
