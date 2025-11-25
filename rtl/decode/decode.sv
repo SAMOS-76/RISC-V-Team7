@@ -7,6 +7,7 @@ module decode #(
     input logic [DATA_WIDTH-1:0] data_in,
 
     output logic [1:0] PCSrc,
+    output logic [1:0] PCTargetSrc,
     output logic [1:0] result_src,
     output logic mem_write,
     output logic [3:0] alu_control,
@@ -42,7 +43,8 @@ module decode #(
         .ImmSrc(imm_src),
         .memSize(type_control),    
         .memUnsigned(sign_ext_flag),
-        .PCSrc(PCSrc)
+        .PCSrc(PCSrc),
+        .PCTargetSrc(PCTargetSrc)
     );
 
     regfile regfile(

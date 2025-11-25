@@ -15,10 +15,8 @@ module control_unit (
     output logic [2:0]  ImmSrc,
     output logic [1:0]  memSize,      // Memory access size
     output logic        memUnsigned,  // Unsigned load flag
-    output logic        Branch,       // Branch instruction flag
-    output logic        Jump,         // Jump instruction flag
-    output logic [2:0]  branchType,   // BEQ,BGT
-    output logic        PCSrc         // PC source
+    output logic        PCSrc,         // PC source
+    output logic        PCTargetSrc   // PC/R1 in Target Adder
 );
 
     logic [6:0] opcode;
@@ -28,6 +26,10 @@ module control_unit (
     assign opcode   = instr[6:0];
     assign funct3   = instr[14:12];
     assign funct7_5 = instr[30];
+
+    logic Branch;             // Branch instruction flag
+    logic Jump;               // Jump instruction flag
+    logic [2:0] branchType;   // BEQ,BGT
 
     logic [1:0] aluOp;
     logic branch_taken;
@@ -43,8 +45,9 @@ module control_unit (
         ImmSrc      = 3'b000;  // Format of imm value depending on insr type
         Branch      = 1'b0;    // Branch flag
         Jump        = 1'b0;    // Jump flag
-        branchType  = 3'b000;  // Type of branch BEQ BGT etc.
+        branchType  = 3'b000;  // Type of branch BEQ BGT etc
         aluOp       = 2'b00;   // Intermediate signal decoded later
+        PCTargetSrc = 1'b0;    // Use PC value directly in target adder not R1
 
         case (opcode)
             7'b0110011: begin  // R type
@@ -122,10 +125,11 @@ module control_unit (
             end
 
             7'b1100111: begin // I type jump
-                RegWrite  = 1'b1;
-                ResultSrc = 2'b10;
-                ALUSrcB    = 1'b1;     
-                Jump      = 1'b1;    
+                RegWrite    = 1'b1;
+                ResultSrc   = 2'b10;
+                ALUSrcB     = 1'b1;     
+                Jump        = 1'b1;
+                PCTargetSrc = 1'b1; //Use register value for target.   
             end
 
             7'b1101111: begin // JAL

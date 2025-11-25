@@ -6,6 +6,8 @@ module fetch #(
     input logic [1:0] PCSrc,
     input logic [DATA_WIDTH-1:0] Result,
     input logic [DATA_WIDTH-1:0] ImmExt, //Input from sign extend
+    input logic [DATA_WIDTH-1:0] PCTargetSrc;
+    input logic [DATA_WIDTH-1:0] r1_val;
 
     output logic [DATA_WIDTH-1:0] Instr,
     output logic [DATA_WIDTH-1:0] pc_out4,
@@ -14,6 +16,8 @@ module fetch #(
 
     logic [DATA_WIDTH-1:0] PC_next;
     logic [DATA_WIDTH-1:0] PC_target;
+    
+    logic [DATA_WIDTH-1:0] PCTargetOp;
 
     mux4 PC_mux4(
         .in0(pc_out4),
@@ -30,9 +34,11 @@ module fetch #(
         .out(pc_out4)
     );
 
+    assign PCTargetOp = PCTargetSrc ? r1_val : pc_out;
+
     adder PC_imm(
         .in0(ImmExt),
-        .in1(pc_out),
+        .in1(PCTargetOp),
         .out(PC_target)
     );
 

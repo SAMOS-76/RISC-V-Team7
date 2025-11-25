@@ -24,12 +24,14 @@ module top #(
     logic [DATA_WIDTH-1:0] r_out2;
     logic [1:0] type_control;
 
-
+    logic PCTargetSrc;
 
     fetch fetch(
         .clk(clk),
         .rst(rst),
         .PCSrc(PCSrc),
+        .PCTargetSrc(PCTargetSrc),
+        .r1_val(r_out1),
         .Result(ALU_result),
         .ImmExt(imm_ext),
         .Instr(instr),
@@ -43,6 +45,7 @@ module top #(
         .instr(instr),
         .data_in(result_final),
         .PCSrc(PCSrc),
+        .PCTargetSrc(PCTargetSrc),
         .result_src(result_src),
         .mem_write(write_en),
         .alu_control(alu_control),
