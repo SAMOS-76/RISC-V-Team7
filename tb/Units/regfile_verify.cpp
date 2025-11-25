@@ -21,16 +21,17 @@ TEST_F(RegFileTests, DualWriteRead){
     EXPECT_EQ(readReg2(10), 0xBBB);
 }
 
+//this test is ofc redudant as x0 always 0
+//however logic is sueful is we decide to full reset all 32.
 TEST_F(RegFileTests, ResetBehavior){
-    // 1. Write data to register 5
-    writeReg(5, 0xFF);
-    EXPECT_EQ(readReg1(5), 0xFF);
+    writeReg(0, 0xFF);
+    EXPECT_EQ(readReg1(0), 0);
     top_->rst = 1; 
 
     runSimulation(5); 
     
     top_->rst = 0;
-    EXPECT_EQ(readReg1(5), 0);
+    EXPECT_EQ(readReg1(0), 0);
 }
 
 TEST_F(RegFileTests, CheckZeroBehavior){

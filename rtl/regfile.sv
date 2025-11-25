@@ -16,16 +16,11 @@ module regfile(
 
 logic [31:0] register [31:0];
 
-
-//must reset all 32 Regs 
-// be safe for reads before writes -- as anything unitilazed will become X propgaters
 always_ff @(posedge clk, posedge rst) begin
     if(rst) begin
 
-        for(int i=0; i<32; i++)begin
-         register[i] <= 32'b0;
-        end
-    
+          register[0] <= 32'b0;
+          
     end
 
 // this was overwriting x0 if a3 ==0 !! Must be hardwired to 0.
