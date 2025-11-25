@@ -43,6 +43,8 @@ always_ff @(posedge clk) begin
                 memory[addr+3] <= din[31:24];
             end
 
+            default: ;
+
         endcase
     end
 

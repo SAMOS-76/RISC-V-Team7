@@ -2,7 +2,6 @@ module execute #(
     DATA_WIDTH =32
 ) (
     input logic clk, 
-    input logic rst,
 
     input logic [DATA_WIDTH-1:0] pc,
     input logic [DATA_WIDTH-1:0] pc4,
@@ -45,14 +44,14 @@ module execute #(
         .out(inB)
     );
 
-    mux4 alu_result(
-        .in0(ALU_out),
-        .in1(read_data),
-        .in2(pc4),
-        .in3(imm_ext),
-        .sel(result_src),
-        .out(result)
-    );
+    always_comb begin
+        case(result_src)
+            2'b00   : result = ALU_out;
+            2'b01   : result = read_data;
+            2'b10   : result = pc4;
+            default : result = ALU_out;
+        endcase
+    end
 
     alu alu(
         .inA(inA),
