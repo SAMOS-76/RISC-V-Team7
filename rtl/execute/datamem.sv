@@ -56,10 +56,10 @@ always_comb begin
     case(type_control)
     
         b: begin
-            dout = {24{sign_ext & memory[addr][7]},memory[addr]};
+            dout = {{24{sign_ext & memory[addr][7]}},memory[addr]};
         end
         half: begin
-            dout = {16{sign_ext & memory[addr+1][7]},memory[addr+1],memory[addr]};           
+            dout = {{16{sign_ext & memory[addr+1][7]}},memory[addr+1],memory[addr]};           
         end
         
         word: begin

@@ -8,7 +8,7 @@ module pc_reg #(
     output logic [DATA_WIDTH-1: 0] pc_out
 );
 
-    logic [DATA_WIDTH:0] PC;
+    logic [DATA_WIDTH-1:0] PC;
 
     always_ff @(posedge clk, posedge rst)
         if (rst) begin

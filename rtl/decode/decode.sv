@@ -58,7 +58,7 @@ module decode #(
     );
 
     sign_extend sign_extend(
-        .ImmSrc(imm_src),
+        .immSrc(imm_src),
         .instr(instr),
         .imm_ext(imm_ext)
     );

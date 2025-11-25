@@ -10,7 +10,7 @@ module regfile(
     input logic [31:0] din,
 
     output logic [31:0] rout1,
-    output logic [31:0] rout2,
+    output logic [31:0] rout2
 
    // output logic [31:0] a0
 
