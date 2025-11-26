@@ -1,10 +1,10 @@
 module decode #(
-    DATA_WIDTH = 32
+    parameter DATA_WIDTH = 32
 ) (
     input logic clk,
     input logic rst,
     input logic [DATA_WIDTH-1:0] instr,
-    input logic [DATA_WIDTH-1:0] data_in,
+    input logic [DATA_WIDTH-1:0] data_in, 
 
     output logic PCSrc,
     output logic PCTargetSrc,
@@ -19,7 +19,8 @@ module decode #(
     output logic [DATA_WIDTH-1:0] imm_ext,
     output logic [DATA_WIDTH-1:0] r_out1,
     output logic [DATA_WIDTH-1:0] r_out2,
-    output logic [1:0] type_control
+    output logic [1:0] type_control,
+    output logic [DATA_WIDTH-1:0] a0
 );
 
     logic write_en;
@@ -58,7 +59,8 @@ module decode #(
         .a3(a3),
         .din(data_in),
         .rout1(r_out1),
-        .rout2(r_out2)
+        .rout2(r_out2),
+        .a0(a0)
     );
 
     sign_extend sign_extend(

@@ -1,5 +1,5 @@
 module execute #(
-    DATA_WIDTH =32
+    parameter DATA_WIDTH =32
 ) (
     input logic clk, 
 

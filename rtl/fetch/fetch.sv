@@ -1,5 +1,5 @@
 module fetch #(
-    DATA_WIDTH = 32
+    parameter DATA_WIDTH = 32
 ) (
     input logic clk,
     /* verilator lint_off UNUSED */

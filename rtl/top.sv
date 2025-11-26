@@ -3,8 +3,10 @@ module top #(
 ) (
     input   logic clk,
     /* verilator lint_off UNUSED */
-    input logic rst
+    input logic rst,
     /* verilator lint_on UNUSED */
+
+    output logic [DATA_WIDTH-1:0] a0
 );
 
     logic PCSrc;
@@ -63,7 +65,8 @@ module top #(
         .imm_ext(imm_ext),
         .r_out1(r_out1),
         .r_out2(r_out2),
-        .type_control(type_control)
+        .type_control(type_control),
+        .a0(a0)
     );
 
     execute execute(
