@@ -14,7 +14,7 @@ module control_unit (
     output logic [1:0]  ResultSrc,  
     output logic [2:0]  ImmSrc,
     output logic [1:0]  memSize,      // Memory access size
-    output logic        memUnsigned,  // Unsigned load flag
+    output logic        mem_signed,  // Unsigned load flag
     output logic        PCSrc,         // PC source
     output logic        PCTargetSrc   // PC/R1 in Target Adder
 );
@@ -41,7 +41,7 @@ module control_unit (
         ALUSrcB     = 1'b0;    // Reg or imm values
         MemWrite    = 1'b0;    // Mem write enable
         memSize     = 2'b10;   // byte or half word or word (word by default)
-        memUnsigned = 1'b0;    // Default is signed integer
+        mem_signed = 1'b0;    // Default is signed integer
         ImmSrc      = 3'b000;  // Format of imm value depending on insr type
         Branch      = 1'b0;    // Branch flag
         Jump        = 1'b0;    // Jump flag
@@ -71,18 +71,22 @@ module control_unit (
                 ALUSrcB    = 1'b1;
 
                 case(funct3)
-                    3'b000: memSize = 2'b00;
-                    3'b001: memSize = 2'b01;
+                    3'b000: begin
+                        memSize = 2'b00;
+                        mem_signed = 1;
+                    end
+                    3'b001: begin 
+                        memSize = 2'b01;
+                        mem_signed = 1;
+                    end
                     3'b010: memSize = 2'b10;
 
                     3'b100: begin // load byte unsigned
                         memSize     = 2'b00;
-                        memUnsigned = 1'b1;
                     end
 
                     3'b101: begin // load half unsigned
                         memSize     = 2'b01;
-                        memUnsigned = 1'b1;
                     end
                     default: ; // NOP - silence warning -- maybe just need to be 0000?
                 endcase
@@ -100,6 +104,7 @@ module control_unit (
                 ImmSrc    = 3'b001;
                 MemWrite  = 1'b1;
                 ALUSrcB    = 1'b1;
+                
 
                 case(funct3)
                     3'b000: memSize = 2'b00;
