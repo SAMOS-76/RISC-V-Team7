@@ -10,6 +10,8 @@ module fetch #(
     input logic PCTargetSrc,
     input logic [DATA_WIDTH-1:0] r1_val,
 
+    input logic trigger,
+
     output logic [DATA_WIDTH-1:0] Instr,
     output logic [DATA_WIDTH-1:0] pc_out4,
     output logic [DATA_WIDTH-1:0] pc_out
@@ -37,6 +39,7 @@ module fetch #(
     pc_reg PC_reg(
         .clk(clk),
         .rst(rst),
+        .trigger(trigger),
         .pc_next(PC_next),
         .pc_out(pc_out)
     );

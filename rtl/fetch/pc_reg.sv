@@ -3,6 +3,7 @@ module pc_reg #(
 ) (
     input logic clk,
     input logic rst,
+    input logic trigger,
 
     input logic [DATA_WIDTH-1: 0] pc_next,
     output logic [DATA_WIDTH-1: 0] pc_out
@@ -11,7 +12,7 @@ module pc_reg #(
     logic [DATA_WIDTH-1:0] PC;
 
     always_ff @(posedge clk, posedge rst)
-        if (rst) begin
+        if (rst & !trigger) begin
             PC <= 32'b0;
         end
 

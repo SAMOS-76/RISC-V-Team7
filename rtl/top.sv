@@ -5,6 +5,7 @@ module top #(
     /* verilator lint_off UNUSED */
     input logic rst,
     /* verilator lint_on UNUSED */
+    input logic trigger,
 
     output logic [DATA_WIDTH-1:0] a0
 );
@@ -38,6 +39,7 @@ module top #(
     fetch fetch(
         .clk(clk),
         .rst(rst),
+        .trigger(trigger),
         .PCSrc(PCSrc),
         .PCTargetSrc(PCTargetSrc),
         .r1_val(r_out1),
