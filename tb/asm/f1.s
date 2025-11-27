@@ -6,7 +6,7 @@ main:
 
 loop:   #loops until t0 = 8 (light sequence complete)
 
-    bge     to, t1, lights_out    
+    bge     t0, t1, lights_out    
     jal     ra, increase       
     addi    t0, t0, 1
     j       loop
