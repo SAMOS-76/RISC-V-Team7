@@ -12,7 +12,7 @@ logic [7:0] instructions [2**12-1:0];
 //ie by Linker - not rtl
 
 initial begin
-    $readmemh("pdf.hex", instructions); // probability density function test instructions loaded
+    $readmemh("program.hex", instructions); // probability density function test instructions loaded
 end
 
 //little endian - BYTE addressed
