@@ -4,7 +4,7 @@ typedef enum logic [1:0] {
     word = 2'b10
 } rw_type;
 
-module datamem #(parameter mem_size = 32'h2000)(
+module datamem #(parameter mem_size = 32'h20000)(
     input clk,
     input write_en,
 
@@ -21,10 +21,10 @@ module datamem #(parameter mem_size = 32'h2000)(
 );
 
 
- logic [7:0] memory [mem_size - 1:0];
+ logic [7:0] memory [mem_size-1:0];
 
 initial begin
-    $readmemh("data.mem", memory, 32'h00010000);
+    $readmemh("data.hex", memory, 32'h00010000);
 end
 
 
