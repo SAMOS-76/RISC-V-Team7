@@ -59,6 +59,9 @@ fi
 # build
 make -j -C obj_dir/ -f "${TOP_MODULE}.mk"
 
+# creat dummy data hex for datamem
+touch data.hex
+
 # run
 if [ $? -eq 0 ]; then
     echo "Build successful. Running tests for $MODULE..."
