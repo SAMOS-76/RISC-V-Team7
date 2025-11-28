@@ -38,16 +38,37 @@ for file in "${files[@]}"; do
         name="top"
     fi
 
-    # Translate Verilog -> C++ including testbench
-    verilator   -Wall --trace \
-                -cc ${RTL_FOLDER}/${name}.sv \
-                --exe ${file} \
-                -y ${RTL_FOLDER} \
-                --prefix "Vdut" \
-                -o Vdut \
-                -LDFLAGS "-lgtest -lgtest_main -lpthread"
+    #  Translate Verilog -> C++ including testbench
+    #  verilator   -Wall --trace \
+    #              -cc ${RTL_FOLDER}/${name}.sv \
+    #              --exe ${file} \
+    #              -y ${RTL_FOLDER} \
+    #              --prefix "Vdut" \
+    #              -o Vdut \
+    #              -LDFLAGS "-lgtest -lgtest_main -lpthread"
 
-    # Build C++ project with automatically generated Makefile
+
+    
+    # Gather all RTL subdirectories
+    rtl_dirs=($(find "$RTL_FOLDER" -type d))
+
+    # Build -y arguments
+    y_args=()
+    for d in "${rtl_dirs[@]}"; do
+        y_args+=(-y "$d")
+    done
+
+    verilator -Wall --trace \
+                 -cc ${RTL_FOLDER}/${name}.sv \
+                 --exe ${file} \
+            "${y_args[@]}" \
+                 --prefix "Vdut" \
+                 -o Vdut \
+                 -LDFLAGS "-lgtest -lgtest_main -lpthread"
+
+
+    # # Build C++ project with automatically generated Makefile
+
     make -j -C obj_dir/ -f Vdut.mk
 
     # Run executable simulation file

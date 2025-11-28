@@ -1,0 +1,6 @@
+# Build artifacts
+obj_dir/
+test_out/
+*.vcd
+program.hex
+data.hex
