@@ -33,7 +33,6 @@ else
 fi
 
 # run Verilator
-echo "Verilating..."
 verilator -Wall --trace \
     -cc ../../rtl/top.sv \
     --exe pdf_tb.cpp \
