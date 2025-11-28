@@ -1,12 +1,10 @@
-/* verilator lint_off UNUSED */
-//bits 6->0 unused
-
 module sign_extend (
     input logic [2:0] immSrc,
+    /* verilator lint_off UNUSED */
     input logic [31:0] instr,
+    /* verilator lint_on UNUSED */
     output logic [31:0] imm_ext
 );
-
 always_comb begin
     case (immSrc)
         3'b000: imm_ext = {{20{instr[31]}}, instr[31:20]};        

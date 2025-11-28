@@ -4,7 +4,7 @@ typedef enum logic [1:0] {
     word = 2'b10
 } rw_type;
 
-module datamem #(parameter mem_size = 512)(
+module datamem #(parameter mem_size = 32'h20000)(
     input clk,
     input write_en,
 
@@ -20,12 +20,14 @@ module datamem #(parameter mem_size = 512)(
 
 );
 
-//memsize seems small / wrong 
-//0x00000000 – 0x00001FFF  ; see memory map (128 KB)?? 
 
- logic [7:0] memory [mem_size - 1:0];
+ logic [7:0] memory [mem_size-1:0];
 
-//bounds chhecking and byte alignment have been considered.
+initial begin
+    $readmemh("data.hex", memory, 32'h00010000);
+end
+
+
 always_ff @(posedge clk) begin
 
     if(write_en) begin
@@ -45,6 +47,8 @@ always_ff @(posedge clk) begin
                 memory[addr+3] <= din[31:24];
             end
 
+            default: ;
+
         endcase
     end
 
@@ -58,10 +62,10 @@ always_comb begin
     case(type_control)
     
         b: begin
-            dout = {24{sign_ext & memory[addr][7]},memory[addr]};
+            dout = {{24{sign_ext & memory[addr][7]}},memory[addr]};
         end
         half: begin
-            dout = {16{sign_ext & memory[addr+1][7]},memory[addr+1],memory[addr]};           
+            dout = {{16{sign_ext & memory[addr+1][7]}},memory[addr+1],memory[addr]};           
         end
         
         word: begin
