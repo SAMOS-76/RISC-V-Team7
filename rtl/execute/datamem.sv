@@ -11,7 +11,6 @@ module datamem #(parameter mem_size = 32'h20000)(
     input rw_type type_control,
 
     input logic [31:0] addr,
-
     input logic [31:0] din,
 
     input logic sign_ext,
@@ -19,7 +18,6 @@ module datamem #(parameter mem_size = 32'h20000)(
     output logic [31:0] dout
 
 );
-
 
  logic [7:0] memory [mem_size-1:0];
 
@@ -51,12 +49,7 @@ always_ff @(posedge clk) begin
 
         endcase
     end
-
-
-
-
 end
-
 
 always_comb begin
     case(type_control)
@@ -75,14 +68,6 @@ always_comb begin
         default: dout = 32'b0;
     endcase
 
-
 end
-
-
-
-
-
-
-
 
 endmodule
