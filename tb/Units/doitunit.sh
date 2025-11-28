@@ -11,15 +11,30 @@ if [ -z "$MODULE" ]; then
     exit 1
 fi
 
-#define variables for paths and names
+# Automatically locate the RTL file inside rtl/ subdirectories
+# args do what they say on the tin, at end if it finds multiple it takes first file found
+RTL_SOURCE=$(find ../../rtl -maxdepth 3 -type f -name "${MODULE}.sv" | head -n 1)
+
+#if nothing found is safe
+if [ -z "$RTL_SOURCE" ]; then
+    echo "couldnt find ${MODULE}.sv inside rtl/ subdirectories."
+    exit 1
+fi
+
+# generates correct include paths now
+INC_PATHS=""
+for d in ../../rtl/*/ ; do
+    INC_PATHS="$INC_PATHS -I$d"
+done
+
+# define variables for paths and names
 #    CRITICAL: Use relative path (../) for TEST_SOURCE so make works inside obj_dir
-RTL_SOURCE="../../rtl/${MODULE}.sv"
-TEST_SOURCE="../${MODULE}_verify.cpp" 
+TEST_SOURCE="../${MODULE}_verify.cpp"
 TOP_MODULE="V${MODULE}"
 
 #cleanup
 rm -rf obj_dir
-rm -f *.vcd  #get rid of this if we want to keep VCDs. 
+rm -f *.vcd  #get rid of this if we want to keep VCDs.
 
 # run Verilator
 echo "Compiling RTL: $RTL_SOURCE"
@@ -29,8 +44,8 @@ verilator   -Wall --trace \
             -cc "$RTL_SOURCE" \
             --exe "$TEST_SOURCE" \
             --prefix "$TOP_MODULE" \
-            -I../../rtl \
-             -CFLAGS "-std=c++17 -I.. -DMODULE_NAME=\\\"${MODULE}\\\"" \
+            $INC_PATHS \
+            -CFLAGS "-std=c++17 -I.. -DMODULE_NAME=\\\"${MODULE}\\\"" \
             -LDFLAGS " -lgtest -lpthread"
             #lgtest_main will run all tests if want
             #watch for hidden space after \'s'
