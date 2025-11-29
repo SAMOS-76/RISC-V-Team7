@@ -15,13 +15,13 @@ module control_unit (
     output logic [2:0]  ImmSrc,
     output logic [1:0]  memSize,      // Memory access size
     output logic        mem_signed,   // Unsigned load flag
-    output logic        PCTargetSrc   // PC/R1 in Target Adder
+    output logic        PCTargetSrc,   // PC/R1 in Target Adder
 
 
     // Signals for branch comparator in EX stage
-    output logic        Branch;       // Branch instruction flag
-    output logic        Jump;         // Jump instruction flag
-    output logic [2:0]  branchType;   // BEQ,BGT ...
+    output logic        Branch,       // Branch instruction flag
+    output logic        Jump,        // Jump instruction flag
+    output logic [2:0]  branchType  // BEQ,BGT ...
 );
 
     logic [6:0] opcode;

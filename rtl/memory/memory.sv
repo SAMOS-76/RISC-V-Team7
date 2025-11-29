@@ -12,11 +12,11 @@ module memory #(
     input logic [DATA_WIDTH-1:0]  alu_result,
     input logic [DATA_WIDTH-1:0]  write_data,
     
-    output logic [DATA_WIDTH-1:0] alu_result_o;
+    output logic [DATA_WIDTH-1:0] alu_result_out,
     output logic [DATA_WIDTH-1:0] read_data
 );
 
-    assign alu_result_o = alu_result; // pass through signaL.
+    assign alu_result_out = alu_result; // pass through signaL.
 
     datamem datamem_inst(
         .clk(clk),

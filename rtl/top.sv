@@ -212,7 +212,7 @@ module top #(
         .alu_result(M_alu_result),
         .write_data(M_write_data),
         .alu_result_out(M_alu_result_out),
-        .mem_read_data(M_mem_read_data)
+        .read_data(M_mem_read_data)
     );
 
     M_W_reg M_W (

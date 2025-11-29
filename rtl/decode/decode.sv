@@ -45,7 +45,7 @@ module decode #(
         .ResultSrc(result_src),  
         .ImmSrc(imm_src),
         .memSize(type_control),    
-        .memUnsigned(sign_ext_flag),
+        .mem_signed(sign_ext_flag),
         .Branch(Branch),
         .Jump(Jump),
         .branchType(branchType),
