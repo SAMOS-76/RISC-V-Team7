@@ -1,5 +1,5 @@
 typedef enum logic [1:0] {
-    b = 2'b00,
+    b    = 2'b00,
     half = 2'b01,
     word = 2'b10
 } rw_type;
@@ -57,6 +57,7 @@ always_comb begin
         b: begin
             dout = {{24{sign_ext & memory[addr][7]}},memory[addr]};
         end
+        
         half: begin
             dout = {{16{sign_ext & memory[addr+1][7]}},memory[addr+1],memory[addr]};           
         end
