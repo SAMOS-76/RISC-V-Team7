@@ -1,23 +1,22 @@
 module memory #(
     parameter DATA_WIDTH = 32
 ) (
-    input logic clk,
+    input logic                   clk,
     
     // control signals from EXE PL reg? 
-    input logic mem_write,
-    input logic [1:0] type_control,
-    input logic sign_ext_flag,
-    input logic [1:0] result_src,  //result mux
+    input logic                   mem_write,
+    input logic [1:0]             type_control,
+    input logic                   sign_ext_flag,
     
     // data from EXe PL reg? 
-    input logic [DATA_WIDTH-1:0] alu_result,
-    input logic [DATA_WIDTH-1:0] write_data,
-    input logic [DATA_WIDTH-1:0] pc4,  //result mux
+    input logic [DATA_WIDTH-1:0]  alu_result,
+    input logic [DATA_WIDTH-1:0]  write_data,
     
-    output logic [DATA_WIDTH-1:0] result
+    output logic [DATA_WIDTH-1:0] alu_result_o;
+    output logic [DATA_WIDTH-1:0] read_data
 );
 
-    logic [DATA_WIDTH-1:0] read_data;
+    assign alu_result_o = alu_result; // pass through signaL.
 
     datamem datamem_inst(
         .clk(clk),
@@ -28,15 +27,5 @@ module memory #(
         .sign_ext(sign_ext_flag),
         .dout(read_data)
     );
-
-    //result mux
-    always_comb begin
-        case(result_src)
-            2'b00   : result = alu_result;
-            2'b01   : result = read_data;
-            2'b10   : result = pc4;
-            default : result = alu_result;
-        endcase
-    end
 
 endmodule

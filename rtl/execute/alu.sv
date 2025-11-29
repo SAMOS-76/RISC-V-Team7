@@ -1,8 +1,9 @@
 module alu #(parameter WIDTH = 32)(
-    input logic [WIDTH-1:0] inA,
-    input logic [WIDTH-1:0] inB,
-    input logic [3:0]       alu_op,
-    output logic            zero,
+    input  logic [WIDTH-1:0] inA,
+    input  logic [WIDTH-1:0] inB,
+    input  logic [3:0]       alu_op,
+
+    output logic             zero,
     output logic [WIDTH-1:0] result
 
 );

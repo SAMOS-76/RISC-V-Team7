@@ -14,9 +14,14 @@ module control_unit (
     output logic [1:0]  ResultSrc,  
     output logic [2:0]  ImmSrc,
     output logic [1:0]  memSize,      // Memory access size
-    output logic        mem_signed,  // Unsigned load flag
-    output logic        PCSrc,         // PC source
+    output logic        mem_signed,   // Unsigned load flag
     output logic        PCTargetSrc   // PC/R1 in Target Adder
+
+
+    // Signals for branch comparator in EX stage
+    output logic        Branch;       // Branch instruction flag
+    output logic        Jump;         // Jump instruction flag
+    output logic [2:0]  branchType;   // BEQ,BGT ...
 );
 
     logic [6:0] opcode;
@@ -26,10 +31,6 @@ module control_unit (
     assign opcode   = instr[6:0];
     assign funct3   = instr[14:12];
     assign funct7_5 = instr[30];
-
-    logic Branch;             // Branch instruction flag
-    logic Jump;               // Jump instruction flag
-    logic [2:0] branchType;   // BEQ,BGT
 
     logic [1:0] aluOp;
     logic branch_taken;
@@ -41,7 +42,7 @@ module control_unit (
         ALUSrcB     = 1'b0;    // Reg or imm values
         MemWrite    = 1'b0;    // Mem write enable
         memSize     = 2'b10;   // byte or half word or word (word by default)
-        mem_signed = 1'b0;    // Default is signed integer
+        mem_signed  = 1'b0;    // Default is signed integer
         ImmSrc      = 3'b000;  // Format of imm value depending on insr type
         Branch      = 1'b0;    // Branch flag
         Jump        = 1'b0;    // Jump flag
@@ -53,13 +54,13 @@ module control_unit (
             7'b0110011: begin  // R type
                 RegWrite  = 1'b1;
                 ResultSrc = 2'b00;  // ALU result
-                ALUSrcB    = 1'b0;   // Use reg values
+                ALUSrcB   = 1'b0;   // Use reg values
                 aluOp     = 2'b10;
             end
 
             7'b1100011: begin  // B type (Branches)
                 Branch     = 1'b1;      // Branch flag set HIGH
-                ALUSrcB     = 1'b0;      
+                ALUSrcB    = 1'b0;      
                 ImmSrc     = 3'b010;    // B-type imm
                 aluOp      = 2'b01;
                 branchType = funct3;    // Used by comparator
@@ -68,15 +69,15 @@ module control_unit (
             7'b0000011: begin //I type (Load instructions)
                 RegWrite  = 1'b1;
                 ResultSrc = 2'b01;
-                ALUSrcB    = 1'b1;
+                ALUSrcB   = 1'b1;
 
                 case(funct3)
                     3'b000: begin
-                        memSize = 2'b00;
+                        memSize    = 2'b00;
                         mem_signed = 1;
                     end
                     3'b001: begin 
-                        memSize = 2'b01;
+                        memSize    = 2'b01;
                         mem_signed = 1;
                     end
                     3'b010: memSize = 2'b10;
@@ -95,7 +96,7 @@ module control_unit (
             7'b0010011: begin // I type (ALU)
                 RegWrite  = 1'b1;
                 ResultSrc = 2'b00;
-                ALUSrcB    = 1'b1;
+                ALUSrcB   = 1'b1;
                 ImmSrc    = 3'b000;
                 aluOp     = 2'b10;
             end
@@ -103,7 +104,7 @@ module control_unit (
             7'b0100011: begin // S type (store instruction)
                 ImmSrc    = 3'b001;
                 MemWrite  = 1'b1;
-                ALUSrcB    = 1'b1;
+                ALUSrcB   = 1'b1;
                 
 
                 case(funct3)
@@ -115,16 +116,16 @@ module control_unit (
             end
 
             7'b0010111: begin // U type (add upper immediate to PC)
-                ImmSrc   = 3'b011;
-                RegWrite = 1'b1;
-                ALUSrcA = 1'b1;
+                ImmSrc    = 3'b011;
+                RegWrite  = 1'b1;
+                ALUSrcA   = 1'b1;
                 ALUSrcB   = 1'b1;
             end
 
             7'b0110111: begin // U type (Load upper immediate)
                 RegWrite  = 1'b1;    
                 ResultSrc = 2'b00;   
-                ALUSrcB    = 1'b1;    
+                ALUSrcB   = 1'b1;    
                 ImmSrc    = 3'b011;  
                 aluOp     = 2'b00;
             end
@@ -155,15 +156,5 @@ module control_unit (
         .opcode(opcode),
         .aluControl(ALUControl)
     );
-
-    branch_comparator branch_comp (
-        .zero(alu_zero),
-        .alu_result_0(alu_result_0),
-        .branchType(branchType),
-        .Branch(Branch),
-        .branch_taken(branch_taken)
-    );
-
-    assign PCSrc = Jump | (Branch & branch_taken);
 
 endmodule

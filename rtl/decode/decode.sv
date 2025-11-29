@@ -1,45 +1,42 @@
-
-
-
 module decode #(
     parameter DATA_WIDTH = 32
 ) (
-    input logic clk,
-    input logic rst,
-    input logic [DATA_WIDTH-1:0] instr,
-    input logic [DATA_WIDTH-1:0] data_in, 
+    input  logic                   clk,
+    input  logic                   rst,
+    input  logic [DATA_WIDTH-1:0]  instr,
+    input  logic [DATA_WIDTH-1:0]  data_in,
+    input  logic                   wb_write_en,
+    input  logic [4:0]             wb_rd,
 
-    output logic PCSrc,
-    output logic PCTargetSrc,
-    output logic [1:0] result_src,
-    output logic mem_write,
-    output logic [3:0] alu_control,
-    output logic alu_srcA,
-    output logic alu_srcB,
-    input  logic zero,
-    input  logic alu_result_0,
-    output logic sign_ext_flag,
-    output logic [DATA_WIDTH-1:0] imm_ext,
-    output logic [DATA_WIDTH-1:0] r_out1,
-    output logic [DATA_WIDTH-1:0] r_out2,
-    output logic [1:0] type_control,
-    output logic [DATA_WIDTH-1:0] a0
+    output logic                   PCTargetSrc,
+    output logic [1:0]             result_src,
+    output logic                   mem_write,
+    output logic [3:0]             alu_control,
+    output logic                   alu_srcA,
+    output logic                   alu_srcB,
+    output logic                   sign_ext_flag,
+    output logic                   Branch,
+    output logic                   Jump,
+    output logic [2:0]             branchType,
+    output logic [DATA_WIDTH-1:0]  imm_ext,
+    output logic [DATA_WIDTH-1:0]  r_out1,
+    output logic [DATA_WIDTH-1:0]  r_out2,
+    output logic [1:0]             type_control,
+    output logic [4:0]             rs1,
+    output logic [4:0]             rs2,
+    output logic [4:0]             rd,
+    output logic [DATA_WIDTH-1:0]  a0
 );
 
     logic write_en;
     logic [2:0] imm_src;
-    logic [4:0] a1;
-    logic [4:0] a2;
-    logic [4:0] a3;
 
-    assign a1 = instr[19:15];
-    assign a2 = instr[24:20];
-    assign a3 = instr[11:7];
+    assign rs1 = instr[19:15];
+    assign rs2 = instr[24:20];
+    assign rd  = instr[11:7];
 
     control_unit control_unit(
         .instr(instr),
-        .alu_zero(zero),
-        .alu_result_0(alu_result_0),
         .ALUControl(alu_control),
         .ALUSrcB(alu_srcB),
         .ALUSrcA(alu_srcA),
@@ -48,18 +45,20 @@ module decode #(
         .ResultSrc(result_src),  
         .ImmSrc(imm_src),
         .memSize(type_control),    
-        .mem_signed(sign_ext_flag),
-        .PCSrc(PCSrc),
+        .memUnsigned(sign_ext_flag),
+        .Branch(Branch),
+        .Jump(Jump),
+        .branchType(branchType),
         .PCTargetSrc(PCTargetSrc)
     );
 
     regfile regfile(
         .clk(clk),
-        .write_en(write_en),
+        .write_en(wb_write_en),
         .rst(rst),
-        .a1(a1),
-        .a2(a2),
-        .a3(a3),
+        .a1(rs1),
+        .a2(rs2),
+        .a3(wb_rd),
         .din(data_in),
         .rout1(r_out1),
         .rout2(r_out2),
