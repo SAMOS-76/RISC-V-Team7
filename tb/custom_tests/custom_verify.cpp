@@ -13,6 +13,23 @@ TEST_F(CpuTestbench, arithmetic_data_dependency_1_step)
     EXPECT_EQ(top_->a0, 15);
 }
 
+TEST_F(CpuTestbench, arithmetic_data_dependency_1_step_rb)
+{
+    setupTest("1_5_arithmetic_data_dependency_1_step_rb");
+    initSimulation();
+    runSimulation(20);
+    EXPECT_EQ(top_->a0, 15);
+}
+
+
+TEST_F(CpuTestbench, arithmetic_data_dependency_2_step)
+{
+    setupTest("2_arithmetic_data_dependency_2_step");
+    initSimulation();
+    runSimulation(40);
+    EXPECT_EQ(top_->a0, 15);
+}
+
 int main(int argc, char **argv)
 {
     testing::InitGoogleTest(&argc, argv);
