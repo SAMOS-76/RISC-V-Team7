@@ -18,6 +18,7 @@ module top #(
     logic [DATA_WIDTH-1:0] D_pc_out4;
 
     logic D_PCTargetSrc;
+    logic D_RegWrite;
     logic [1:0] D_result_src;
     logic D_mem_write;
     logic [3:0] D_alu_control;
@@ -36,6 +37,7 @@ module top #(
     logic [4:0] D_rd;
 
     logic E_PCTargetSrc;
+    logic E_RegWrite;
     logic [1:0] E_result_src;
     logic E_mem_write;
     logic [3:0] E_alu_control;
@@ -57,6 +59,7 @@ module top #(
     logic E_zero;
 
     logic M_mem_write;
+    logic M_RegWrite;
     logic [1:0] M_type_control;
     logic M_sign_ext_flag;
     logic [1:0] M_result_src;
@@ -107,6 +110,7 @@ module top #(
         .wb_write_en(W_RegWrite),
         .wb_rd(W_rd),
         .PCTargetSrc(D_PCTargetSrc),
+        .RegWrite(D_RegWrite),
         .result_src(D_result_src),
         .mem_write(D_mem_write),
         .alu_control(D_alu_control),
@@ -129,6 +133,7 @@ module top #(
     D_E_reg D_E (
         .clk(clk),
         .rst(rst),
+        .D_RegWrite(D_RegWrite),
         .D_PCTargetSrc(D_PCTargetSrc),
         .D_result_src(D_result_src),
         .D_mem_write(D_mem_write),
@@ -146,6 +151,7 @@ module top #(
         .D_r_out2(D_r_out2),
         .D_type_control(D_type_control),
         .D_rd(D_rd),
+        .E_RegWrite(E_RegWrite),
         .E_PCTargetSrc(E_PCTargetSrc),
         .E_result_src(E_result_src),
         .E_mem_write(E_mem_write),
@@ -186,6 +192,7 @@ module top #(
     E_M_reg E_M (
         .clk(clk),
         .rst(rst),
+        .E_RegWrite(E_RegWrite),
         .E_mem_write(E_mem_write),
         .E_type_control(E_type_control),
         .E_sign_ext_flag(E_sign_ext_flag),
@@ -194,6 +201,7 @@ module top #(
         .E_r_out2(E_r_out2),
         .E_pc_out4(E_pc_out4),
         .E_rd(E_rd),
+        .M_RegWrite(M_RegWrite),
         .M_mem_write(M_mem_write),
         .M_type_control(M_type_control),
         .M_sign_ext_flag(M_sign_ext_flag),
@@ -218,7 +226,7 @@ module top #(
     M_W_reg M_W (
         .clk(clk),
         .rst(rst),
-        .M_RegWrite(D_mem_write),
+        .M_RegWrite(M_RegWrite),
         .M_result_src(M_result_src),
         .M_alu_result(M_alu_result_out),
         .M_mem_data(M_mem_read_data),
@@ -240,195 +248,4 @@ module top #(
         .result(W_result)
     );
 
-endmodule
-
-module F_D_reg #(
-    parameter DATA_WIDTH = 32
-) (
-    input  logic clk,
-    input  logic rst,
-    input  logic [DATA_WIDTH-1:0] F_instr,
-    input  logic [DATA_WIDTH-1:0] F_pc_out,
-    input  logic [DATA_WIDTH-1:0] F_pc_out4,
-    output logic [DATA_WIDTH-1:0] D_instr,
-    output logic [DATA_WIDTH-1:0] D_pc_out,
-    output logic [DATA_WIDTH-1:0] D_pc_out4
-);
-    always_ff @(posedge clk) begin
-        if (rst) begin
-            D_instr <= 0;
-            D_pc_out <= 0;
-            D_pc_out4 <= 0;
-        end else begin
-            D_instr <= F_instr;
-            D_pc_out <= F_pc_out;
-            D_pc_out4 <= F_pc_out4;
-        end
-    end
-endmodule
-
-module D_E_reg #(
-    parameter DATA_WIDTH = 32
-) (
-    input  logic clk,
-    input  logic rst,
-    input  logic D_PCTargetSrc,
-    input  logic [1:0] D_result_src,
-    input  logic D_mem_write,
-    input  logic [3:0] D_alu_control,
-    input  logic D_alu_srcA,
-    input  logic D_alu_srcB,
-    input  logic D_sign_ext_flag,
-    input  logic D_Branch,
-    input  logic D_Jump,
-    input  logic [2:0] D_branchType,
-    input  logic [DATA_WIDTH-1:0] D_pc_out,
-    input  logic [DATA_WIDTH-1:0] D_pc_out4,
-    input  logic [DATA_WIDTH-1:0] D_imm_ext,
-    input  logic [DATA_WIDTH-1:0] D_r_out1,
-    input  logic [DATA_WIDTH-1:0] D_r_out2,
-    input  logic [1:0] D_type_control,
-    input  logic [4:0] D_rd,
-    
-    output logic E_PCTargetSrc,
-    output logic [1:0] E_result_src,
-    output logic E_mem_write,
-    output logic [3:0] E_alu_control,
-    output logic E_alu_srcA,
-    output logic E_alu_srcB,
-    output logic E_sign_ext_flag,
-    output logic E_Branch,
-    output logic E_Jump,
-    output logic [2:0] E_branchType,
-    output logic [DATA_WIDTH-1:0] E_pc_out,
-    output logic [DATA_WIDTH-1:0] E_pc_out4,
-    output logic [DATA_WIDTH-1:0] E_imm_ext,
-    output logic [DATA_WIDTH-1:0] E_r_out1,
-    output logic [DATA_WIDTH-1:0] E_r_out2,
-    output logic [1:0] E_type_control,
-    output logic [4:0] E_rd
-);
-    always_ff @(posedge clk) begin
-        if (rst) begin
-            E_PCTargetSrc <= 0;
-            E_result_src <= 0;
-            E_mem_write <= 0;
-            E_alu_control <= 0;
-            E_alu_srcA <= 0;
-            E_alu_srcB <= 0;
-            E_sign_ext_flag <= 0;
-            E_Branch <= 0;
-            E_Jump <= 0;
-            E_branchType <= 0;
-            E_pc_out <= 0;
-            E_pc_out4 <= 0;
-            E_imm_ext <= 0;
-            E_r_out1 <= 0;
-            E_r_out2 <= 0;
-            E_type_control <= 0;
-            E_rd <= 0;
-        end else begin
-            E_PCTargetSrc <= D_PCTargetSrc;
-            E_result_src <= D_result_src;
-            E_mem_write <= D_mem_write;
-            E_alu_control <= D_alu_control;
-            E_alu_srcA <= D_alu_srcA;
-            E_alu_srcB <= D_alu_srcB;
-            E_sign_ext_flag <= D_sign_ext_flag;
-            E_Branch <= D_Branch;
-            E_Jump <= D_Jump;
-            E_branchType <= D_branchType;
-            E_pc_out <= D_pc_out;
-            E_pc_out4 <= D_pc_out4;
-            E_imm_ext <= D_imm_ext;
-            E_r_out1 <= D_r_out1;
-            E_r_out2 <= D_r_out2;
-            E_type_control <= D_type_control;
-            E_rd <= D_rd;
-        end
-    end
-endmodule
-
-module E_M_reg #(
-    parameter DATA_WIDTH = 32
-) (
-    input  logic clk,
-    input  logic rst,
-    input  logic E_mem_write,
-    input  logic [1:0] E_type_control,
-    input  logic E_sign_ext_flag,
-    input  logic [1:0] E_result_src,
-    input  logic [DATA_WIDTH-1:0] E_alu_result,
-    input  logic [DATA_WIDTH-1:0] E_r_out2,
-    input  logic [DATA_WIDTH-1:0] E_pc_out4,
-    input  logic [4:0] E_rd,
-    
-    output logic M_mem_write,
-    output logic [1:0] M_type_control,
-    output logic M_sign_ext_flag,
-    output logic [1:0] M_result_src,
-    output logic [DATA_WIDTH-1:0] M_alu_result,
-    output logic [DATA_WIDTH-1:0] M_write_data,
-    output logic [DATA_WIDTH-1:0] M_pc_out4,
-    output logic [4:0] M_rd
-);
-    always_ff @(posedge clk) begin
-        if (rst) begin
-            M_mem_write <= 0;
-            M_type_control <= 0;
-            M_sign_ext_flag <= 0;
-            M_result_src <= 0;
-            M_alu_result <= 0;
-            M_write_data <= 0;
-            M_pc_out4 <= 0;
-            M_rd <= 0;
-        end else begin
-            M_mem_write <= E_mem_write;
-            M_type_control <= E_type_control;
-            M_sign_ext_flag <= E_sign_ext_flag;
-            M_result_src <= E_result_src;
-            M_alu_result <= E_alu_result;
-            M_write_data <= E_r_out2;
-            M_pc_out4 <= E_pc_out4;
-            M_rd <= E_rd;
-        end
-    end
-endmodule
-
-module M_W_reg #(
-    parameter DATA_WIDTH = 32
-) (
-    input  logic clk,
-    input  logic rst,
-    input  logic M_RegWrite,
-    input  logic [1:0] M_result_src,
-    input  logic [DATA_WIDTH-1:0] M_alu_result,
-    input  logic [DATA_WIDTH-1:0] M_mem_data,
-    input  logic [DATA_WIDTH-1:0] M_pc_out4,
-    input  logic [4:0] M_rd,
-    
-    output logic W_RegWrite,
-    output logic [1:0] W_result_src,
-    output logic [DATA_WIDTH-1:0] W_alu_result,
-    output logic [DATA_WIDTH-1:0] W_mem_data,
-    output logic [DATA_WIDTH-1:0] W_pc_out4,
-    output logic [4:0] W_rd
-);
-    always_ff @(posedge clk) begin
-        if (rst) begin
-            W_RegWrite <= 0;
-            W_result_src <= 0;
-            W_alu_result <= 0;
-            W_mem_data <= 0;
-            W_pc_out4 <= 0;
-            W_rd <= 0;
-        end else begin
-            W_RegWrite <= M_RegWrite;
-            W_result_src <= M_result_src;
-            W_alu_result <= M_alu_result;
-            W_mem_data <= M_mem_data;
-            W_pc_out4 <= M_pc_out4;
-            W_rd <= M_rd;
-        end
-    end
 endmodule

@@ -9,6 +9,7 @@ module decode #(
     input  logic [4:0]             wb_rd,
 
     output logic                   PCTargetSrc,
+    output logic                   RegWrite,
     output logic [1:0]             result_src,
     output logic                   mem_write,
     output logic [3:0]             alu_control,
@@ -28,7 +29,6 @@ module decode #(
     output logic [DATA_WIDTH-1:0]  a0
 );
 
-    logic write_en;
     logic [2:0] imm_src;
 
     assign rs1 = instr[19:15];
@@ -37,11 +37,13 @@ module decode #(
 
     control_unit control_unit(
         .instr(instr),
+        .alu_zero(1'b0),
+        .alu_result_0(1'b0), //unsued input? 
         .ALUControl(alu_control),
         .ALUSrcB(alu_srcB),
         .ALUSrcA(alu_srcA),
         .MemWrite(mem_write),     
-        .RegWrite(write_en),     
+        .RegWrite(RegWrite),
         .ResultSrc(result_src),  
         .ImmSrc(imm_src),
         .memSize(type_control),    

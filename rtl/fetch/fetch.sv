@@ -16,7 +16,7 @@ module fetch #(
 
     logic [DATA_WIDTH-1:0] PC_next;
 
-    pc_reg PC(
+    pc_reg PC_REG( //signal and instance were named PC = VARHIDDEN warn/error, so renamed PC -> PC_REG
         .clk(clk),
         .rst(rst),
         .trigger(trigger),
