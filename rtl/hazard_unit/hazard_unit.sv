@@ -1,7 +1,7 @@
 typedef enum logic [1:0]{
     none = 2'b00,
     mem  = 2'b01,
-    writeback = 2'b10,
+    writeback = 2'b10
 } forward_type;
 
 

@@ -21,6 +21,9 @@ module D_E_reg #(
     input  logic [DATA_WIDTH-1:0] D_r_out2,
     input  logic [1:0] D_type_control,
     input  logic [4:0] D_rd,
+
+    input  logic [4:0] D_ra,
+    input  logic [4:0] D_rb,
     
     output logic E_RegWrite,
     output logic E_PCTargetSrc,
@@ -39,7 +42,10 @@ module D_E_reg #(
     output logic [DATA_WIDTH-1:0] E_r_out1,
     output logic [DATA_WIDTH-1:0] E_r_out2,
     output logic [1:0] E_type_control,
-    output logic [4:0] E_rd
+    output logic [4:0] E_rd,
+
+    output logic [4:0] E_ra,
+    output logic [4:0] E_rb
 );
     always_ff @(posedge clk) begin  //probably make negedge at some point , and for the rest of them eg RnW
         if (rst) begin
@@ -61,6 +67,8 @@ module D_E_reg #(
             E_r_out2 <= 0;
             E_type_control <= 0;
             E_rd <= 0;
+            E_ra <= 0;
+            E_rb <= 0;
         end 
         else 
         begin
@@ -82,6 +90,8 @@ module D_E_reg #(
             E_r_out2 <= D_r_out2;
             E_type_control <= D_type_control;
             E_rd <= D_rd;
+            E_ra <= D_ra;
+            E_rb <= D_rb;
         end
     end
 endmodule

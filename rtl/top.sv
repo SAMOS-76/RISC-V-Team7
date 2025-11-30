@@ -52,8 +52,13 @@ module top #(
     logic [DATA_WIDTH-1:0] E_imm_ext;
     logic [DATA_WIDTH-1:0] E_r_out1;
     logic [DATA_WIDTH-1:0] E_r_out2;
+    logic [DATA_WIDTH-1:0] E_forwarded_1;
+    logic [DATA_WIDTH-1:0] E_forwarded_2;
+
     logic [1:0] E_type_control;
     logic [4:0] E_rd;
+    logic [4:0] E_ra;
+    logic [4:0] E_rb;
 
     logic [DATA_WIDTH-1:0] E_ALUResult;
     logic E_zero;
@@ -79,6 +84,10 @@ module top #(
     logic [4:0] W_rd;
 
     logic [DATA_WIDTH-1:0] W_result;
+
+    logic [1:0] forwarding_sel_a;
+    logic [1:0] forwarding_sel_b;
+
 
     fetch fetch_stage (
         .clk(clk),
@@ -151,6 +160,8 @@ module top #(
         .D_r_out2(D_r_out2),
         .D_type_control(D_type_control),
         .D_rd(D_rd),
+        .D_ra(D_rs1),
+        .D_rb(D_rs2),
         .E_RegWrite(E_RegWrite),
         .E_PCTargetSrc(E_PCTargetSrc),
         .E_result_src(E_result_src),
@@ -168,8 +179,26 @@ module top #(
         .E_r_out1(E_r_out1),
         .E_r_out2(E_r_out2),
         .E_type_control(E_type_control),
-        .E_rd(E_rd)
+        .E_rd(E_rd),
+        .E_ra(E_ra),
+        .E_rb(E_rb)
     );
+
+    always_comb begin
+        case (forwarding_sel_a)
+            2'b00: E_forwarded_1 = E_r_out1;
+            2'b01: E_forwarded_1 = M_alu_result;
+            2'b10: E_forwarded_1 = W_alu_result;
+            default: E_forwarded_1 = 32'b0;        
+        endcase
+        case (forwarding_sel_b)
+            2'b00: E_forwarded_2 = E_r_out2;
+            2'b01: E_forwarded_2 = M_alu_result;
+            2'b10: E_forwarded_2 = W_alu_result;
+            default: E_forwarded_2 = 32'b0;        
+        endcase
+    
+    end
 
     execute execute_stage (
         .alu_control(E_alu_control),
@@ -180,8 +209,8 @@ module top #(
         .Jump(E_Jump),
         .branchType(E_branchType),
         .PC(E_pc_out),
-        .rs1(E_r_out1),
-        .rs2(E_r_out2),
+        .rs1(E_forwarded_1),
+        .rs2(E_forwarded_2),
         .imm_ext(E_imm_ext),
         .ALUResult(E_ALUResult),
         .zero(E_zero),
@@ -246,6 +275,34 @@ module top #(
         .mem_data(W_mem_data),
         .pc4(W_pc_out4),
         .result(W_result)
+    );
+
+
+
+    hazard_unit h_u(
+
+        //execute stage registers it wants to read
+        .ex_reg_a(E_ra),
+        .ex_reg_b(E_rb),
+            
+            
+            
+            //datamem stage
+        .datamem_reg_write_enable(M_RegWrite),
+        .datamem_reg_write_addr(M_rd),
+
+
+
+            //writeback stage
+
+        .wb_reg_write_enable(W_RegWrite),
+        .wb_reg_write_addr(W_rd),
+
+
+            //outputs to mux's controlling inputs in ex stage
+        .reg_a(forwarding_sel_a),
+        .reg_b(forwarding_sel_b)
+
     );
 
 endmodule
