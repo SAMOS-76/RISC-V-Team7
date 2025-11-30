@@ -19,6 +19,20 @@ module data_cache (
     input  logic        mem_ready
 );
 
-// finish off after understanding cache logic i want
+//storage
+    // cache params
+    localparam NUM_SETS = 128;
+    localparam NUM_WAYS = 2;
+    localparam TAG_BITS = 21;
+    localparam BLOCK_BITS = 128;  // 4 words
+
+    logic                  valid [NUM_SETS-1:0] [NUM_WAYS-1:0 ];
+    logic                  dirty [NUM_SETS-1:0] [NUM_WAYS-1:0 ];
+    logic [TAG_BITS-1:0]   tags  [NUM_SETS-1:0] [NUM_WAYS-1:0 ];
+    logic [BLOCK_BITS-1:0] data  [NUM_SETS-1:0] [NUM_WAYS-1:0 ];
+    
+    // LRU tracking (1 bit per set)
+    logic [NUM_SETS-1:0] lru;
+
 
 endmodule
