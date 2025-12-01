@@ -46,6 +46,14 @@ TEST_F(CpuTestbench, memory_write_data_dependency)
     EXPECT_EQ(top_->a0, 10);
 }
 
+TEST_F(CpuTestbench, cascaded_data)
+{
+    setupTest("5_cascaded_writes");
+    initSimulation();
+    runSimulation(60);
+    EXPECT_EQ(top_->a0, 26);
+}
+
 int main(int argc, char **argv)
 {
     testing::InitGoogleTest(&argc, argv);
