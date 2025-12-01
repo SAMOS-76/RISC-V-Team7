@@ -73,12 +73,38 @@ module data_cache (
     } state_t ;
     
     state_t state, next_state;
+
+    // request capture regs - save request info on miss (inputs may change during multi-cycle miss)
+    logic              req_write_en;
+    logic [1:0]        req_word_offset;
+    logic [31:0]       req_din;
+    logic [TAG_BITS-1:0] req_tag;
+    logic [6:0]        req_index;
+    logic              req_replace_way;
     
     always_ff @(posedge clk or posedge rst )begin
-        if (rst)
-            state <= IDLE;
-        else
+        if (rst) begin
+            state           <= IDLE;
+            req_write_en    <= 1'b0;
+            req_word_offset <= 2'b0;
+            req_din         <= 32'b0;
+            req_tag         <= '0;
+            req_index       <= 7'b0;
+            req_replace_way <= 1'b0;
+        end
+        else begin
             state <= next_state;
+            
+            // capture request when leaving IDLE, miss detetcted 
+            if (state == IDLE && next_state != IDLE) begin
+                req_write_en    <= write_en;
+                req_word_offset <= word_offset;
+                req_din         <= din;
+                req_tag         <= tag;
+                req_index       <= index;
+                req_replace_way <= replace_way;
+            end
+        end
     end
 
   //next  state logic
@@ -120,7 +146,7 @@ module data_cache (
     // miiss is in IDLE or genrally in any non idle set
     assign stall = (state != IDLE) || (mem_access && !cache_hit);
 
-     //mem interface - WB or alloc
+     //mem interface - WB or alloc (use captured values)
     always_comb begin
         mem_read  = 1'b0;
         mem_write = 1'b0;
@@ -130,13 +156,13 @@ module data_cache (
         case (state)
             WRITEBACK: begin
                 mem_write = 1'b1;
-                mem_addr  = writeback_addr;
-                mem_wdata = data[index][replace_way];
+                mem_addr  = {tags[req_index][req_replace_way], req_index, 4'b0000};
+                mem_wdata = data[req_index][req_replace_way];
             end
             
             ALLOCATE : begin
                 mem_read = 1'b1;
-                mem_addr = {tag, index , 4'b0000};  // has to be block aligned
+                mem_addr = {req_tag, req_index , 4'b0000};  // has to be block aligned
             end
             
             default: ;  // other states no mem acecss 
@@ -211,14 +237,26 @@ module data_cache (
                 end
                 
                 UPDATE_CACHE: begin
-                    // Install new block
-                    valid[index][replace_way] <= 1'b1;
-                    tags[index][replace_way]  <=  tag;
-                    dirty [index][replace_way] <= 1'b0;
-                    data[index][replace_way]  <= mem_rdata ;
+                    // Install new block (use captured values)
+                    valid[req_index][req_replace_way] <= 1'b1;
+                    tags[req_index][req_replace_way]  <= req_tag;
+                    lru[req_index] <= req_replace_way ? 1'b0 : 1'b1;
                     
-                    // Update LRU
-                    lru[index] <= replace_way ? 1'b0 : 1'b1;
+                    if (req_write_en) begin
+                        // write miss - merge write data into fetched block
+                        dirty[req_index][req_replace_way] <= 1'b1;
+                        case (req_word_offset)
+                            2'b00: data[req_index][req_replace_way] <= {mem_rdata[127:32], req_din};
+                            2'b01: data[req_index][req_replace_way] <= {mem_rdata[127:64], req_din, mem_rdata[31:0]};
+                            2'b10: data[req_index][req_replace_way] <= {mem_rdata[127:96], req_din, mem_rdata[63:0]};
+                            2'b11: data[req_index][req_replace_way] <= {req_din, mem_rdata[95:0]};
+                        endcase
+                    end
+                    else begin
+                        // read miss - just install block
+                        dirty[req_index][req_replace_way] <= 1'b0;
+                        data[req_index][req_replace_way]  <= mem_rdata;
+                    end
                 end
                 
                 default: ;
