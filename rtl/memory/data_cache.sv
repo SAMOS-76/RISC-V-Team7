@@ -168,5 +168,64 @@ module data_cache (
     
     assign dout = selected_word;
 
+    //update the cache:
+    // which way was hit (for updates)
+    logic hit_way;
+    always_comb begin
+        if (hit_way0)
+            hit_way = 1'b0;
+        else
+            hit_way = 1'b1;
+    end
+    
+    always_ff @(posedge clk or posedge rst) begin
+        if (rst) begin
+            // reset bits
+            for (int i = 0; i < NUM_SETS; i++) begin
+                valid[i][0] <= 1'b0;
+                valid[i][1] <= 1'b0;
+                dirty[i][0] <= 1'b0;
+                dirty[i][1] <= 1'b0;
+                lru[i]      <= 1'b0;
+            end
+        end
+        else begin
+            case (state)
+                IDLE: begin
+                    if (cache_hit) begin
+                        
+                        lru[index] <= hit_way ? 1'b0 : 1'b1;
+            
+                        if (write_en) begin
+                            dirty[index][hit_way] <= 1'b1;
+                            
+                            // merge write data into block
+                            case (word_offset)
+                                2'b00: data[index][hit_way][31:0]   <= din;
+                                2'b01: data[index][hit_way][63:32]  <= din;
+                                2'b10: data[index][hit_way][95:64]  <= din;
+                                2'b11: data[index][hit_way][127:96] <= din;
+                            endcase
+                        end
+                    end
+                end
+                
+                UPDATE_CACHE: begin
+                    // Install new block
+                    valid[index][replace_way] <= 1'b1;
+                    tags[index][replace_way]  <=  tag;
+                    dirty [index][replace_way] <= 1'b0;
+                    data[index][replace_way]  <= mem_rdata ;
+                    
+                    // Update LRU
+                    lru[index] <= replace_way ? 1'b0 : 1'b1;
+                end
+                
+                default: ;
+            endcase
+        end
+    end
+
+
 
 endmodule
