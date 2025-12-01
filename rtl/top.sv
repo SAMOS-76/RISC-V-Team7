@@ -113,11 +113,12 @@ module top #(
         .PCSrc(PCSrc),
         .PCTarget(PCTarget)
     );
-
+    
+    //  cache needs to see the write request to generate the stall signal.
     memory memory_stage (
         .clk(clk),
         .rst(rst),
-        .mem_write(mem_write & ~stall),   //disable wr during stall 
+        .mem_write(mem_write),   
         .type_control(type_control),
         .sign_ext_flag(sign_ext_flag),
         .alu_result(ALUResult),

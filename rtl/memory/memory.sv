@@ -3,13 +3,9 @@ module memory #(
 ) (
     input logic                   clk,
     input logic                   rst,
-    
-    // control signals from EXE PL reg? 
     input logic                   mem_write,
     input logic [1:0]             type_control,
     input logic                   sign_ext_flag,
-    
-    // data from EXe PL reg? 
     input logic [DATA_WIDTH-1:0]  alu_result,
     input logic [DATA_WIDTH-1:0]  write_data,
     
@@ -17,8 +13,7 @@ module memory #(
     output logic [DATA_WIDTH-1:0] read_data,
     output logic                  mem_stall
 );
-
-    assign alu_result_out = alu_result; // pass through
+    assign alu_result_out = alu_result;
 
     // Cache datamem interface
     logic        cache_mem_read;
@@ -27,11 +22,10 @@ module memory #(
     logic [127:0] cache_mem_wdata;
     logic [127:0] cache_mem_rdata;
     logic        cache_mem_ready;
-    
+
     // Raw data from cache (before sign extension)
     logic [31:0] cache_dout;
 
-    // Data cache
     data_cache cache_inst (
         .clk(clk),
         .rst(rst),
@@ -49,18 +43,17 @@ module memory #(
         .mem_ready(cache_mem_ready)
     );
 
-    // Main memory (with block interface for cache)
     datamem datamem_inst (
         .clk(clk),
         .rst(rst),
-        
-        // word interface (unused, cache handles access)
         .write_en(1'b0),
         .type_control(2'b10),
         .addr(32'b0),
         .din(32'b0),
         .sign_ext(1'b0),
-        .dout(),  // unused
+        /* verilator lint_off PINCONNECTEMPTY */
+        .dout(), 
+        /* verilator lint_on PINCONNECTEMPTY */
         
         // Block interface (for cache)
         .block_read(cache_mem_read),

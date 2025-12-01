@@ -5,7 +5,9 @@ module data_cache (
     // Cpu interface - kept signext outside as this isnt rlly cache logic...
     input  logic        write_en,
     input  logic [1:0]  type_control,   // byte/half/word
+    /* verilator lint_off UNUSED */
     input  logic [31:0] addr,
+    /* verilator lint_on UNUSED */
     input  logic [31:0] din,
     output logic [31:0] dout,
     output logic        stall,
@@ -18,8 +20,7 @@ module data_cache (
     input  logic [127:0] mem_rdata,
     input  logic        mem_ready
 );
-
-//storage
+    //storage
     // cache params
     localparam NUM_SETS = 128;
     localparam NUM_WAYS = 2;
@@ -30,16 +31,19 @@ module data_cache (
     logic                  dirty [NUM_SETS-1:0] [NUM_WAYS-1:0 ];
     logic [TAG_BITS-1:0]   tags  [NUM_SETS-1:0] [NUM_WAYS-1:0 ];
     logic [BLOCK_BITS-1:0] data  [NUM_SETS-1:0] [NUM_WAYS-1:0 ];
-    
+
     // LRU tracking (1 bit per set)
     logic [NUM_SETS-1:0] lru;
 
     //exxtract bit patterns from addr
     logic [TAG_BITS-1:0] tag;
-    logic [6:0]         index; //selct which set
+    logic [6:0]         index;
+    //selct which set
     logic [1:0]          word_offset;
+    /* verilator lint_off UNUSED */
     logic [1:0]          byte_offset;
-    
+    /* verilator lint_on UNUSED */
+
     assign tag         = addr[31:11];
     assign index       = addr[10:4];
     assign word_offset = addr[3:2] ;
@@ -71,7 +75,6 @@ module data_cache (
         ALLOCATE,
         UPDATE_CACHE
     } state_t ;
-    
     state_t state, next_state;
 
     // request capture regs - save request info on miss (inputs may change during multi-cycle miss)
@@ -94,7 +97,7 @@ module data_cache (
         end
         else begin
             state <= next_state;
-            
+
             // capture request when leaving IDLE, miss detetcted 
             if (state == IDLE && next_state != IDLE) begin
                 req_write_en    <= write_en;
@@ -109,7 +112,8 @@ module data_cache (
 
   //next  state logic
     logic mem_access;
-    assign mem_access = write_en || ( !write_en && (type_control !=  2'b11)); // w or r
+    assign mem_access = write_en || ( !write_en && (type_control !=  2'b11));
+    // w or r
     
     always_comb begin
         next_state = state;
@@ -152,7 +156,6 @@ module data_cache (
         mem_write = 1'b0;
         mem_addr  = 32'b0;
         mem_wdata = 128'b0 ;
-        
         case (state)
             WRITEBACK: begin
                 mem_write = 1'b1;
@@ -165,14 +168,15 @@ module data_cache (
                 mem_addr = {req_tag, req_index , 4'b0000};  // has to be block aligned
             end
             
-            default: ;  // other states no mem acecss 
+            default: ;
+            // other states no mem acecss 
         endcase
     end
 
     ///read data out
     logic [BLOCK_BITS-1:0] hit_block;
     logic [31:0]           selected_word ;
-    
+
     always_comb begin
         if (hit_way0)
             hit_block = data[index][0];
@@ -207,6 +211,7 @@ module data_cache (
     always_ff @(posedge clk or posedge rst) begin
         if (rst) begin
             // reset bits
+            /* verilator lint_off BLKLOOPINIT */
             for (int i = 0; i < NUM_SETS; i++) begin
                 valid[i][0] <= 1'b0;
                 valid[i][1] <= 1'b0;
@@ -214,6 +219,7 @@ module data_cache (
                 dirty[i][1] <= 1'b0;
                 lru[i]      <= 1'b0;
             end
+            /* verilator lint_on BLKLOOPINIT */
         end
         else begin
             case (state)
@@ -224,7 +230,7 @@ module data_cache (
             
                         if (write_en) begin
                             dirty[index][hit_way] <= 1'b1;
-                            
+
                             // merge write data into block
                             case (word_offset)
                                 2'b00: data[index][hit_way][31:0]   <= din;
@@ -237,11 +243,11 @@ module data_cache (
                 end
                 
                 UPDATE_CACHE: begin
-                    // Install new block (use captured values)
+                     // Install new block (use captured values)
                     valid[req_index][req_replace_way] <= 1'b1;
                     tags[req_index][req_replace_way]  <= req_tag;
                     lru[req_index] <= req_replace_way ? 1'b0 : 1'b1;
-                    
+
                     if (req_write_en) begin
                         // write miss - merge write data into fetched block
                         dirty[req_index][req_replace_way] <= 1'b1;
@@ -263,7 +269,5 @@ module data_cache (
             endcase
         end
     end
-
-
 
 endmodule
