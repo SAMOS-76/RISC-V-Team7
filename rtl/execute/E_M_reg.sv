@@ -12,6 +12,7 @@ module E_M_reg #(
     input  logic [DATA_WIDTH-1:0] E_r_out2,
     input  logic [DATA_WIDTH-1:0] E_pc_out4,
     input  logic [4:0] E_rd,
+    input  logic [6:0] E_opcode,
     
     output logic M_RegWrite,
     output logic M_mem_write,
@@ -21,7 +22,8 @@ module E_M_reg #(
     output logic [DATA_WIDTH-1:0] M_alu_result,
     output logic [DATA_WIDTH-1:0] M_write_data,
     output logic [DATA_WIDTH-1:0] M_pc_out4,
-    output logic [4:0] M_rd
+    output logic [4:0] M_rd,
+    output logic [6:0] M_opcode
 );
     always_ff @(posedge clk) begin
         if (rst) begin
@@ -34,6 +36,7 @@ module E_M_reg #(
             M_write_data <= 0;
             M_pc_out4 <= 0;
             M_rd <= 0;
+            M_opcode <= 0;
         end 
         else 
         begin
@@ -46,6 +49,7 @@ module E_M_reg #(
             M_write_data <= E_r_out2;
             M_pc_out4 <= E_pc_out4;
             M_rd <= E_rd;
+            M_opcode <= E_opcode;
         end
     end
 endmodule

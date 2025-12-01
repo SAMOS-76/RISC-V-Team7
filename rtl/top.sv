@@ -88,6 +88,11 @@ module top #(
     logic [1:0] forwarding_sel_a;
     logic [1:0] forwarding_sel_b;
 
+    logic [6:0] D_opcode;
+    logic [6:0] E_opcode;
+    logic [6:0] M_opcode;
+    logic [6:0] W_opcode;
+
 
     fetch fetch_stage (
         .clk(clk),
@@ -136,7 +141,8 @@ module top #(
         .rs1(D_rs1),
         .rs2(D_rs2),
         .rd(D_rd),
-        .a0(a0)
+        .a0(a0),
+        .opcode(D_opcode)
     );
 
     D_E_reg D_E (
@@ -162,6 +168,7 @@ module top #(
         .D_rd(D_rd),
         .D_ra(D_rs1),
         .D_rb(D_rs2),
+        .D_opcode(D_opcode),
         .E_RegWrite(E_RegWrite),
         .E_PCTargetSrc(E_PCTargetSrc),
         .E_result_src(E_result_src),
@@ -181,7 +188,8 @@ module top #(
         .E_type_control(E_type_control),
         .E_rd(E_rd),
         .E_ra(E_ra),
-        .E_rb(E_rb)
+        .E_rb(E_rb),
+        .E_opcode(E_opcode)
     );
 
     always_comb begin
@@ -230,6 +238,7 @@ module top #(
         .E_r_out2(E_r_out2),
         .E_pc_out4(E_pc_out4),
         .E_rd(E_rd),
+        .E_opcode(E_opcode),
         .M_RegWrite(M_RegWrite),
         .M_mem_write(M_mem_write),
         .M_type_control(M_type_control),
@@ -238,7 +247,8 @@ module top #(
         .M_alu_result(M_alu_result),
         .M_write_data(M_write_data),
         .M_pc_out4(M_pc_out4),
-        .M_rd(M_rd)
+        .M_rd(M_rd),
+        .M_opcode(M_opcode)
     );
 
     memory memory_stage (
@@ -261,12 +271,14 @@ module top #(
         .M_mem_data(M_mem_read_data),
         .M_pc_out4(M_pc_out4),
         .M_rd(M_rd),
+        .M_opcode(M_opcode),
         .W_RegWrite(W_RegWrite),
         .W_result_src(W_result_src),
         .W_alu_result(W_alu_result),
         .W_mem_data(W_mem_data),
         .W_pc_out4(W_pc_out4),
-        .W_rd(W_rd)
+        .W_rd(W_rd),
+        .W_opcode(W_opcode)
     );
 
     writeback writeback_stage (
@@ -280,6 +292,10 @@ module top #(
 
 
     hazard_unit h_u(
+
+        .E_opcode(E_opcode),
+        .M_opcode(M_opcode),
+        .W_opcode(W_opcode),
 
         //execute stage registers it wants to read
         .ex_reg_a(E_ra),
