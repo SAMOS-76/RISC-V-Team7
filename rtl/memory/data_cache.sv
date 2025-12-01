@@ -116,4 +116,57 @@ module data_cache (
     end
 
 
+    // Stall
+    // miiss is in IDLE or genrally in any non idle set
+    assign stall = (state != IDLE) || (mem_access && !cache_hit);
+
+     //mem interface - WB or alloc
+    always_comb begin
+        mem_read  = 1'b0;
+        mem_write = 1'b0;
+        mem_addr  = 32'b0;
+        mem_wdata = 128'b0 ;
+        
+        case (state)
+            WRITEBACK: begin
+                mem_write = 1'b1;
+                mem_addr  = writeback_addr;
+                mem_wdata = data[index][replace_way];
+            end
+            
+            ALLOCATE : begin
+                mem_read = 1'b1;
+                mem_addr = {tag, index , 4'b0000};  // has to be block aligned
+            end
+            
+            default: ;  // other states no mem acecss 
+        endcase
+    end
+
+    ///read data out
+    logic [BLOCK_BITS-1:0] hit_block;
+    logic [31:0]           selected_word ;
+    
+    always_comb begin
+        if (hit_way0)
+            hit_block = data[index][0];
+        else if (hit_way1)
+            hit_block = data[index][1];
+        else
+            hit_block = 128'b0;
+    end
+    
+    // select corrct word from offset
+    always_comb begin
+        case (word_offset)
+            2'b00: selected_word = hit_block[31:0];
+            2'b01: selected_word = hit_block[63:32];
+            2'b10: selected_word = hit_block[95: 64];
+            2'b11: selected_word = hit_block[127:96];
+        endcase
+    end
+    
+    assign dout = selected_word;
+
+
 endmodule
