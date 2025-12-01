@@ -235,7 +235,7 @@ module top #(
         .E_sign_ext_flag(E_sign_ext_flag),
         .E_result_src(E_result_src),
         .E_alu_result(E_ALUResult),
-        .E_r_out2(E_r_out2),
+        .E_r_out2(E_forwarded_2),
         .E_pc_out4(E_pc_out4),
         .E_rd(E_rd),
         .E_opcode(E_opcode),
@@ -292,6 +292,7 @@ module top #(
 
 
     hazard_unit h_u(
+
 
         .E_opcode(E_opcode),
         .M_opcode(M_opcode),

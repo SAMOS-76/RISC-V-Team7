@@ -30,6 +30,22 @@ TEST_F(CpuTestbench, arithmetic_data_dependency_2_step)
     EXPECT_EQ(top_->a0, 15);
 }
 
+TEST_F(CpuTestbench, memory_write_address_dependency)
+{
+    setupTest("3_memory_write_address_dependency");
+    initSimulation();
+    runSimulation(60);
+    EXPECT_EQ(top_->a0, 5);
+}
+
+TEST_F(CpuTestbench, memory_write_data_dependency)
+{
+    setupTest("4_memory_write_data_dependency");
+    initSimulation();
+    runSimulation(60);
+    EXPECT_EQ(top_->a0, 10);
+}
+
 int main(int argc, char **argv)
 {
     testing::InitGoogleTest(&argc, argv);

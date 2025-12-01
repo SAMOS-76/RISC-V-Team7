@@ -49,7 +49,7 @@ module D_E_reg #(
     output logic [4:0] E_ra,
     output logic [4:0] E_rb
 );
-    always_ff @(posedge clk) begin  //probably make negedge at some point , and for the rest of them eg RnW
+    always_ff @(negedge clk) begin  //negaedge so register file can be written nd then read with new value - makes the execute sort of 'directly'/'combinatoraly' connected to the regfile as no updates are lost
         if (rst) begin
             E_RegWrite <= 0;
             E_PCTargetSrc <= 0;
