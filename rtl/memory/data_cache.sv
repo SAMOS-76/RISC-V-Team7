@@ -54,6 +54,66 @@ module data_cache (
     assign hit_way1 = valid[index][1] && (tags[index][1] == tag);
     assign cache_hit = hit_way0 || hit_way1 ;
 
+    // replacement lgic, semi FSM setup 
+    logic replace_way;
+    logic need_writeback;
+    logic [31:0] writeback_addr ;
+    
+    assign replace_way = lru[index];
+    assign need_writeback = valid[index][replace_way] && dirty[index][replace_way];
+    assign writeback_addr = {tags[index][replace_way], index,  4'b0000 };
+
+    // FSM
+    
+    typedef enum logic [ 1:0]{
+        IDLE,
+        WRITEBACK,
+        ALLOCATE,
+        UPDATE_CACHE
+    } state_t ;
+    
+    state_t state, next_state;
+    
+    always_ff @(posedge clk or posedge rst )begin
+        if (rst)
+            state <= IDLE;
+        else
+            state <= next_state;
+    end
+
+  //next  state logic
+    logic mem_access;
+    assign mem_access = write_en || ( !write_en && (type_control !=  2'b11)); // w or r
+    
+    always_comb begin
+        next_state = state;
+
+        case (state)
+            IDLE: begin
+                if (mem_access &&  !cache_hit) begin
+                    //handle a miss
+                    if (need_writeback )
+                        next_state =  WRITEBACK;
+                    else
+                        next_state = ALLOCATE;
+                end
+            end
+            
+            WRITEBACK: begin
+                if (mem_ready)
+                    next_state = ALLOCATE;
+            end
+            
+            ALLOCATE: begin
+                if (mem_ready)
+                    next_state = UPDATE_CACHE;
+            end
+            
+            UPDATE_CACHE : begin
+                next_state = IDLE;
+            end
+        endcase
+    end
 
 
 endmodule
