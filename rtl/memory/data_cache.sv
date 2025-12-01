@@ -38,11 +38,10 @@ module data_cache (
     //exxtract bit patterns from addr
     logic [TAG_BITS-1:0] tag;
     logic [6:0]         index;
+    
     //selct which set
     logic [1:0]          word_offset;
-    /* verilator lint_off UNUSED */
     logic [1:0]          byte_offset;
-    /* verilator lint_on UNUSED */
 
     assign tag         = addr[31:11];
     assign index       = addr[10:4];
@@ -61,7 +60,9 @@ module data_cache (
     // replacement lgic, semi FSM setup 
     logic replace_way;
     logic need_writeback;
+    /* verilator lint_off UNUSED */
     logic [31:0] writeback_addr ;
+    /* verilator lint_on UNUSED */
     
     assign replace_way = lru[index];
     assign need_writeback = valid[index][replace_way] && dirty[index][replace_way];
@@ -79,7 +80,9 @@ module data_cache (
 
     // request capture regs - save request info on miss (inputs may change during multi-cycle miss)
     logic              req_write_en;
+    logic [1:0]        req_type_control;
     logic [1:0]        req_word_offset;
+    logic [1:0]        req_byte_offset;
     logic [31:0]       req_din;
     logic [TAG_BITS-1:0] req_tag;
     logic [6:0]        req_index;
@@ -89,7 +92,9 @@ module data_cache (
         if (rst) begin
             state           <= IDLE;
             req_write_en    <= 1'b0;
+            req_type_control <= 2'b0;
             req_word_offset <= 2'b0;
+            req_byte_offset <= 2'b0;
             req_din         <= 32'b0;
             req_tag         <= '0;
             req_index       <= 7'b0;
@@ -101,7 +106,9 @@ module data_cache (
             // capture request when leaving IDLE, miss detetcted 
             if (state == IDLE && next_state != IDLE) begin
                 req_write_en    <= write_en;
+                req_type_control <= type_control;
                 req_word_offset <= word_offset;
+                req_byte_offset <= byte_offset;
                 req_din         <= din;
                 req_tag         <= tag;
                 req_index       <= index;
@@ -196,7 +203,26 @@ module data_cache (
         endcase
     end
     
-    assign dout = selected_word;
+    // extract correct bytes based on type and byte offset
+    always_comb begin
+        case (type_control)
+            2'b00: begin  // byte access
+                case (byte_offset)
+                    2'b00: dout = {24'b0, selected_word[7:0]};
+                    2'b01: dout = {24'b0, selected_word[15:8]};
+                    2'b10: dout = {24'b0, selected_word[23:16]};
+                    2'b11: dout = {24'b0, selected_word[31:24]};
+                endcase
+            end
+            2'b01: begin  // half access
+                case (byte_offset[1])
+                    1'b0: dout = {16'b0, selected_word[15:0]};
+                    1'b1: dout = {16'b0, selected_word[31:16]};
+                endcase
+            end
+            default: dout = selected_word;  // word access
+        endcase
+    end
 
     //update the cache:
     // which way was hit (for updates)
@@ -207,6 +233,31 @@ module data_cache (
         else
             hit_way = 1'b1;
     end
+
+    // merge write data into block - only modify the specific bytes being written
+    function automatic [127:0] merge_write_data(
+        input [127:0] old_block,
+        input [31:0]  write_data,
+        input [1:0]   type_ctrl,
+        input [3:0]   blk_byte_offset
+    );
+        logic [127:0] new_block;
+        new_block = old_block;
+        case (type_ctrl)
+            2'b00: new_block[blk_byte_offset*8 +: 8]  = write_data[7:0];   // byte
+            2'b01: new_block[blk_byte_offset*8 +: 16] = write_data[15:0];  // half
+            2'b10: new_block[blk_byte_offset*8 +: 32] = write_data;        // word
+            default: ;
+        endcase
+        return new_block;
+    endfunction
+
+    // block byte offset (0-15 within cache line)
+    logic [3:0] block_byte_offset;
+    assign block_byte_offset = {word_offset, byte_offset};
+
+    logic [3:0] req_block_byte_offset;
+    assign req_block_byte_offset = {req_word_offset, req_byte_offset};
     
     always_ff @(posedge clk or posedge rst) begin
         if (rst) begin
@@ -231,13 +282,13 @@ module data_cache (
                         if (write_en) begin
                             dirty[index][hit_way] <= 1'b1;
 
-                            // merge write data into block
-                            case (word_offset)
-                                2'b00: data[index][hit_way][31:0]   <= din;
-                                2'b01: data[index][hit_way][63:32]  <= din;
-                                2'b10: data[index][hit_way][95:64]  <= din;
-                                2'b11: data[index][hit_way][127:96] <= din;
-                            endcase
+                            // merge write data into block at correct byte position
+                            data[index][hit_way] <= merge_write_data(
+                                data[index][hit_way],
+                                din,
+                                type_control,
+                                block_byte_offset
+                            );
                         end
                     end
                 end
@@ -251,12 +302,12 @@ module data_cache (
                     if (req_write_en) begin
                         // write miss - merge write data into fetched block
                         dirty[req_index][req_replace_way] <= 1'b1;
-                        case (req_word_offset)
-                            2'b00: data[req_index][req_replace_way] <= {mem_rdata[127:32], req_din};
-                            2'b01: data[req_index][req_replace_way] <= {mem_rdata[127:64], req_din, mem_rdata[31:0]};
-                            2'b10: data[req_index][req_replace_way] <= {mem_rdata[127:96], req_din, mem_rdata[63:0]};
-                            2'b11: data[req_index][req_replace_way] <= {req_din, mem_rdata[95:0]};
-                        endcase
+                        data[req_index][req_replace_way] <= merge_write_data(
+                            mem_rdata,
+                            req_din,
+                            req_type_control,
+                            req_block_byte_offset
+                        );
                     end
                     else begin
                         // read miss - just install block

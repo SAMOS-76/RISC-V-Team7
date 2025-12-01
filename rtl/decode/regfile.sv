@@ -15,16 +15,14 @@ module regfile(
    output logic [31:0] a0
 
 );
+    logic [31:0] register [31:0];
 
-logic [31:0] register [31:0];
-
-always_ff @(posedge clk) begin
+always_ff @(posedge clk or posedge rst) begin
 
     if(rst) begin
         register[0] <= 32'b0;
     end
-
-    // this was overwriting x0 if a3 ==0 !! Must be hardwired to 0.
+    // Must be hardwired to 0.
     //and block writes to x0
 
     else if(write_en && a3 != 5'b0) begin
@@ -32,7 +30,6 @@ always_ff @(posedge clk) begin
     end
 
     register[0] <= 32'b0;
-
 end
 
 // eg add RAW hazard detection - bypassing 
