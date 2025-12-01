@@ -34,5 +34,26 @@ module data_cache (
     // LRU tracking (1 bit per set)
     logic [NUM_SETS-1:0] lru;
 
+    //exxtract bit patterns from addr
+    logic [TAG_BITS-1:0] tag;
+    logic [6:0]         index; //selct which set
+    logic [1:0]          word_offset;
+    logic [1:0]          byte_offset;
+    
+    assign tag         = addr[31:11];
+    assign index       = addr[10:4];
+    assign word_offset = addr[3:2] ;
+    assign byte_offset = addr[1:0];
+
+    // detect hits -check each way in the set and hits 
+    logic hit_way0;
+    logic hit_way1;
+    logic cache_hit;
+
+    assign hit_way0 = valid[index][0] && (tags[index][0] == tag);
+    assign hit_way1 = valid[index][1] && (tags[index][1] == tag);
+    assign cache_hit = hit_way0 || hit_way1 ;
+
+
 
 endmodule
