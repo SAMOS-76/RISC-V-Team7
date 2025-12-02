@@ -3,7 +3,9 @@ module branch_comparator (
     input  logic        alu_result_0,  // LSB of ALU result
     input  logic [2:0]  branchType,
     input  logic        Branch,
-    output logic        branch_taken
+
+    output logic        branch_taken,
+    output logic        branch_mispredict
 );
 
     typedef enum logic [2:0] {
@@ -17,7 +19,7 @@ module branch_comparator (
 
     always_comb begin
         branch_taken = 1'b0;
-        
+
         if (Branch) begin
             case (branchType)
                 BEQ:  branch_taken = zero;           
@@ -29,6 +31,8 @@ module branch_comparator (
                 default: branch_taken = 1'b0; //guarantee logic
             endcase
         end
+
+        branch_mispredict = branch & (0 != branch_taken); // Replace 0 with prediction value;
     end
 
 endmodule
