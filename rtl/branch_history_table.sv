@@ -22,27 +22,29 @@ module branch_history_table #(
         ST  = 2'b11  // Strongly taken
     } state_t;
 
-    // BHT storage: 2-bit saturating counters
+    // BHT storage
     logic [1:0] bht [2**INDEX_BITS-1:0];
     
     logic [INDEX_BITS-1:0] index_F;
     logic [INDEX_BITS-1:0] index_E;
 
     always_comb begin
-       index_F = PC_F[INDEX_BITS+1:2];
-       index_E = PC_E[INDEX_BITS+1:2];
+       index_F = PC_F[INDEX_BITS+1:2]; // No lsb because of +4
+       index_E = PC_E[INDEX_BITS+1:2]; 
 
        // Prediction: MSB indicates taken(1) or not-taken(0)
        predict_taken_F = bht[index_F][1];
     end
     
     always_ff @(posedge clk or negedge rst) begin
+
         if (!rst) begin
             // Initialize to WNT
             for (int i = 0; i < 2**INDEX_BITS; i++) begin
                 bht[i] <= WNT;
             end
         end
+
         else if (update_en) begin
             case (bht[index_E])
                 SNT: bht[index_E] <= branch_taken_E ? WNT : SNT;  

@@ -32,7 +32,7 @@ module branch_comparator (
             endcase
         end
 
-        branch_mispredict = branch & (0 != branch_taken); // Replace 0 with prediction value;
+        branch_mispredict = branch & (0 != branch_taken); // Replace 0 with prediction value
     end
 
 endmodule

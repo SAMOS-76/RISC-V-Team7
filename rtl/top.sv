@@ -294,8 +294,6 @@ module top #(
         .result(W_result)
     );
 
-
-
     hazard_unit h_u(
 
         .PC_en(PC_en),
