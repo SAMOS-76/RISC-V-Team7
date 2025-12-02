@@ -3,6 +3,7 @@ module D_E_reg #(
 ) (
     input  logic clk,
     input  logic rst,
+    input  logic D_E_en,
     input  logic D_RegWrite,
     input  logic D_PCTargetSrc,
     input  logic [1:0] D_result_src,
@@ -73,7 +74,7 @@ module D_E_reg #(
             E_rb <= 0;
             E_opcode <= 0;
         end 
-        else 
+        else if (D_E_en)
         begin
             E_RegWrite <= D_RegWrite;
             E_PCTargetSrc <= D_PCTargetSrc;

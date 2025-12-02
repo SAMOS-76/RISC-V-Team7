@@ -6,10 +6,16 @@ typedef enum logic [1:0]{
 
 
 module hazard_unit(
+    input logic         clk,
 
+    input  logic    [4:0] d_reg_a,
+    input  logic    [4:0] d_reg_b,
+    input  logic    [6:0] d_opcode,
     //execute stage registers it wants to read
     input   logic   [4:0] ex_reg_a,
     input   logic   [4:0] ex_reg_b,
+    input   logic   [4:0] ex_reg_d,
+
     input   logic   [6:0] E_opcode,
     
     
@@ -32,7 +38,10 @@ module hazard_unit(
     output  forward_type    reg_b,
 
     output logic            PC_en,
-    output logic            E_M_en
+    output logic            F_D_en,
+    output logic            D_E_en,
+
+    output logic            no_op
 
 
 
@@ -42,20 +51,37 @@ module hazard_unit(
     logic E_reg_2_valid;
     logic M_reg_c_valid;
     logic W_reg_c_valid;
+    logic d_reg_1_valid;
+    logic d_reg_2_valid;
 
     logic reg_en;
 
 
+assign d_reg_1_valid = ~(d_opcode == 7'b0010111 | d_opcode == 7'b0110111 | d_opcode == 7'b1101111);
+assign d_reg_2_valid = ~(d_opcode == 7'b0010111 | d_opcode == 7'b0110111 | d_opcode == 7'b1100111 | d_opcode == 7'b1101111 | d_opcode == 7'b0000011 | d_opcode == 7'b0010011);
+
 assign E_reg_1_valid = ~(E_opcode == 7'b0010111 | E_opcode == 7'b0110111 | E_opcode == 7'b1101111);
 assign E_reg_2_valid = ~(E_opcode == 7'b0010111 | E_opcode == 7'b0110111 | E_opcode == 7'b1100111 | E_opcode == 7'b1101111 | E_opcode == 7'b0000011 | E_opcode == 7'b0010011);
+
+
 assign W_reg_c_valid = ~(W_opcode == 7'b0100011 | W_opcode == 7'b1100011);
 assign M_reg_c_valid = ~(M_opcode == 7'b0100011 | M_opcode == 7'b1100011);
 
 
 assign PC_en = reg_en;
-assign E_M_en = reg_en;
+assign F_D_en = reg_en;
+assign D_E_en = reg_en;
+assign no_op = ~reg_en;
 
-assign reg_en = ~(      M_opcode == 7'b0000011          &&           (((datamem_reg_write_addr == ex_reg_a)&&E_reg_1_valid) || ((datamem_reg_write_addr == ex_reg_b)&&E_reg_2_valid))      );
+
+
+
+
+
+always_ff @(negedge clk) begin
+reg_en <= ~(E_opcode == 7'b0000011 && (((d_reg_a == ex_reg_d) && d_reg_1_valid) || ((d_reg_b == ex_reg_d) && d_reg_2_valid)) && ~no_op);
+end
+
 
 always_comb begin
 
@@ -74,7 +100,7 @@ always_comb begin
     //for a
     //most recent (the one currently in data) is pipelined in
 
-    if((ex_reg_a == datamem_reg_write_addr) && datamem_reg_write_enable && E_reg_1_valid && M_reg_c_valid) begin
+    if((ex_reg_a == datamem_reg_write_addr) && datamem_reg_write_enable && E_reg_1_valid && M_reg_c_valid && (M_opcode != 7'b0000011)) begin
         reg_a = mem;
     end
 
@@ -86,7 +112,7 @@ always_comb begin
 
 
 
-    if((ex_reg_b == datamem_reg_write_addr) && datamem_reg_write_enable && E_reg_2_valid && M_reg_c_valid) begin
+    if((ex_reg_b == datamem_reg_write_addr) && datamem_reg_write_enable && E_reg_2_valid && M_reg_c_valid && (M_opcode != 7'b0000011)) begin
         reg_b = mem;
     end
 
@@ -94,5 +120,8 @@ always_comb begin
         reg_b = writeback;
     end
 end
+
+
+
 
 endmodule

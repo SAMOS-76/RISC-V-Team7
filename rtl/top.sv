@@ -8,6 +8,7 @@ module top #(
 );
 
     logic F_PCSrc;
+
     logic [DATA_WIDTH-1:0] F_PCTarget;
     logic [DATA_WIDTH-1:0] F_instr;
     logic [DATA_WIDTH-1:0] F_pc_out;
@@ -16,6 +17,7 @@ module top #(
     logic [DATA_WIDTH-1:0] D_instr;
     logic [DATA_WIDTH-1:0] D_pc_out;
     logic [DATA_WIDTH-1:0] D_pc_out4;
+
 
     logic D_PCTargetSrc;
     logic D_RegWrite;
@@ -93,8 +95,17 @@ module top #(
     logic [6:0] M_opcode;
     logic [6:0] W_opcode;
 
+    logic F_D_en;
+    logic D_E_en;
     logic PC_en;
-    logic E_M_en;
+    logic stateful_F_D_en;
+    logic stateful_PC_en;
+    logic no_op;
+
+    always_ff @(negedge clk) begin
+        stateful_F_D_en <= F_D_en;
+        stateful_PC_en <= PC_en;
+    end
 
 
     fetch fetch_stage (
@@ -106,12 +117,13 @@ module top #(
         .Instr(F_instr),
         .pc_out4(F_pc_out4),
         .pc_out(F_pc_out),
-        .PC_en(PC_en)
+        .PC_en(stateful_PC_en)
     );
 
     F_D_reg F_D (
         .clk(clk),
         .rst(rst),
+        .F_D_en(stateful_F_D_en),
         .F_instr(F_instr),
         .F_pc_out(F_pc_out),
         .F_pc_out4(F_pc_out4),
@@ -152,6 +164,7 @@ module top #(
     D_E_reg D_E (
         .clk(clk),
         .rst(rst),
+        .D_E_en(D_E_en),
         .D_RegWrite(D_RegWrite),
         .D_PCTargetSrc(D_PCTargetSrc),
         .D_result_src(D_result_src),
@@ -200,13 +213,13 @@ module top #(
         case (forwarding_sel_a)
             2'b00: E_forwarded_1 = E_r_out1;
             2'b01: E_forwarded_1 = M_alu_result;
-            2'b10: E_forwarded_1 = W_alu_result;
+            2'b10: E_forwarded_1 = W_result;
             default: E_forwarded_1 = 32'b0;        
         endcase
         case (forwarding_sel_b)
             2'b00: E_forwarded_2 = E_r_out2;
             2'b01: E_forwarded_2 = M_alu_result;
-            2'b10: E_forwarded_2 = W_alu_result;
+            2'b10: E_forwarded_2 = W_result;
             default: E_forwarded_2 = 32'b0;        
         endcase
     
@@ -230,12 +243,17 @@ module top #(
         .PCTarget(F_PCTarget)
     );
 
+    wire stall_control_mem_write;
+    wire stall_control_reg_write;
+
+    assign stall_control_mem_write = E_mem_write && ~no_op;
+    assign stall_control_reg_write = E_RegWrite && ~no_op;
+
     E_M_reg E_M (
         .clk(clk),
         .rst(rst),
-        .E_M_en(E_M_en),
-        .E_RegWrite(E_RegWrite),
-        .E_mem_write(E_mem_write),
+        .E_RegWrite(stall_control_reg_write),
+        .E_mem_write(stall_control_mem_write),
         .E_type_control(E_type_control),
         .E_sign_ext_flag(E_sign_ext_flag),
         .E_result_src(E_result_src),
@@ -298,8 +316,11 @@ module top #(
 
     hazard_unit h_u(
 
+        .clk(clk),
+
         .PC_en(PC_en),
-        .E_M_en(E_M_en),
+        .F_D_en(F_D_en),
+        .D_E_en(D_E_en),
 
 
         .E_opcode(E_opcode),
@@ -307,8 +328,16 @@ module top #(
         .W_opcode(W_opcode),
 
         //execute stage registers it wants to read
+        .d_reg_a(D_rs1),
+        .d_reg_b(D_rs2),
+        .d_opcode(D_opcode),
+
+
+
+
         .ex_reg_a(E_ra),
         .ex_reg_b(E_rb),
+        .ex_reg_d(E_rd),
             
             
             
@@ -326,7 +355,8 @@ module top #(
 
             //outputs to mux's controlling inputs in ex stage
         .reg_a(forwarding_sel_a),
-        .reg_b(forwarding_sel_b)
+        .reg_b(forwarding_sel_b),
+        .no_op(no_op)
 
     );
 
