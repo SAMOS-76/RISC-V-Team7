@@ -62,6 +62,15 @@ TEST_F(CpuTestbench, load_hazard)
     EXPECT_EQ(top_->a0, 11);
 }
 
+TEST_F(CpuTestbench, complex_load_hazard)
+{
+    setupTest("7_complex_load_hazard");
+    initSimulation();
+    runSimulation(100);
+    EXPECT_EQ(top_->a0, 6);
+}
+
+
 int main(int argc, char **argv)
 {
     testing::InitGoogleTest(&argc, argv);
