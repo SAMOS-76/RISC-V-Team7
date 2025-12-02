@@ -15,7 +15,7 @@ int main(int argc, char **argv, char **env)
   int tick; 
 
   // From cpu_testbench
-  std::ignore = system("./assemble.sh asm/f1.s");
+  std::ignore = system("./assemble.sh asm/f1_complex.s");
   std::ignore = system("touch data.hex");
 
   // Top level and wavefor generation
