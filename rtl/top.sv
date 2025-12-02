@@ -93,6 +93,9 @@ module top #(
     logic [6:0] M_opcode;
     logic [6:0] W_opcode;
 
+    logic PC_en;
+    logic E_M_en;
+
 
     fetch fetch_stage (
         .clk(clk),
@@ -102,7 +105,8 @@ module top #(
         .PC_target(F_PCTarget),
         .Instr(F_instr),
         .pc_out4(F_pc_out4),
-        .pc_out(F_pc_out)
+        .pc_out(F_pc_out),
+        .PC_en(PC_en)
     );
 
     F_D_reg F_D (
@@ -229,6 +233,7 @@ module top #(
     E_M_reg E_M (
         .clk(clk),
         .rst(rst),
+        .E_M_en(E_M_en),
         .E_RegWrite(E_RegWrite),
         .E_mem_write(E_mem_write),
         .E_type_control(E_type_control),
@@ -292,6 +297,9 @@ module top #(
 
 
     hazard_unit h_u(
+
+        .PC_en(PC_en),
+        .E_M_en(E_M_en),
 
 
         .E_opcode(E_opcode),

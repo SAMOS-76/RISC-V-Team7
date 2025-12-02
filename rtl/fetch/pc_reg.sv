@@ -4,6 +4,7 @@ module pc_reg #(
     input logic clk,
     input logic rst,
     input logic trigger,
+    input logic PC_en,
 
     input logic [DATA_WIDTH-1: 0] pc_next,
     output logic [DATA_WIDTH-1: 0] pc_out
@@ -16,7 +17,7 @@ module pc_reg #(
             PC <= 32'b0;
         end
 
-        else begin
+        else if(PC_en)begin
             PC <= pc_next;
         end
     

@@ -29,7 +29,10 @@ module hazard_unit(
 
     //outputs to mux's controlling inputs in ex stage
     output  forward_type    reg_a,
-    output  forward_type    reg_b
+    output  forward_type    reg_b,
+
+    output logic            PC_en,
+    output logic            E_M_en
 
 
 
@@ -40,6 +43,8 @@ module hazard_unit(
     logic M_reg_c_valid;
     logic W_reg_c_valid;
 
+    logic reg_en;
+
 
 assign E_reg_1_valid = ~(E_opcode == 7'b0010111 | E_opcode == 7'b0110111 | E_opcode == 7'b1101111);
 assign E_reg_2_valid = ~(E_opcode == 7'b0010111 | E_opcode == 7'b0110111 | E_opcode == 7'b1100111 | E_opcode == 7'b1101111 | E_opcode == 7'b0000011 | E_opcode == 7'b0010011);
@@ -47,6 +52,10 @@ assign W_reg_c_valid = ~(W_opcode == 7'b0100011 | W_opcode == 7'b1100011);
 assign M_reg_c_valid = ~(M_opcode == 7'b0100011 | M_opcode == 7'b1100011);
 
 
+assign PC_en = reg_en;
+assign E_M_en = reg_en;
+
+assign reg_en = ~(      M_opcode == 7'b0000011          &&           (((datamem_reg_write_addr == ex_reg_a)&&E_reg_1_valid) || ((datamem_reg_write_addr == ex_reg_b)&&E_reg_2_valid))      );
 
 always_comb begin
 
@@ -57,6 +66,8 @@ always_comb begin
 
     reg_a = none;
     reg_b = none;
+
+    
 
 
 
