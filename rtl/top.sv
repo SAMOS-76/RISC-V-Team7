@@ -48,20 +48,15 @@ module top #(
     //memory
     logic [DATA_WIDTH-1:0]      mem_read_data;
     logic [DATA_WIDTH-1:0]      alu_result_out;
-    logic                       mem_stall;
 
     // writeback
     logic [DATA_WIDTH-1:0]      result;
-
-    // stall control - freeze PC and disable writes during stall
-    logic                       stall;
-    assign stall = mem_stall;
 
     fetch fetch_stage (
         .clk(clk),
         .rst(rst),
         .PCSrc(PCSrc),
-        .trigger(trigger | stall),
+        .trigger(trigger),
         .PC_target(PCTarget),
         .Instr(instr),
         .pc_out4(pc_out4),
@@ -73,7 +68,7 @@ module top #(
         .rst(rst),
         .instr(instr),
         .data_in(result),
-        .wb_write_en(RegWrite & ~stall),
+        .wb_write_en(RegWrite),
         .wb_rd(rd),
         .PCTargetSrc(PCTargetSrc),
         .RegWrite(RegWrite),
@@ -113,19 +108,16 @@ module top #(
         .PCSrc(PCSrc),
         .PCTarget(PCTarget)
     );
-    
-    //  cache needs to see the write request to generate the stall signal.
+
     memory memory_stage (
         .clk(clk),
-        .rst(rst),
-        .mem_write(mem_write),   
+        .mem_write(mem_write),
         .type_control(type_control),
         .sign_ext_flag(sign_ext_flag),
         .alu_result(ALUResult),
         .write_data(r_out2),
         .alu_result_out(alu_result_out),
-        .read_data(mem_read_data),
-        .mem_stall(mem_stall)
+        .read_data(mem_read_data)
     );
 
     writeback writeback_stage (
