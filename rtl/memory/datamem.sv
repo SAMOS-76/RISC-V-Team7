@@ -47,28 +47,16 @@ always_ff @(posedge clk) begin
 
             default: ;
 
+            endcase
+        end
+
+        // READ - creates 1cycle latency but infers BRAM
+        case(type_control)
+            b:    dout <= {{24{sign_ext & memory[addr][7]}},  memory[addr]} ;
+            half: dout <= {{16{sign_ext & memory[addr+1][7]}}, memory[addr+1], memory[addr]};
+            word: dout <= {memory[addr+3], memory[addr+2], memory[addr+1], memory[addr]};
+            default: dout <= 32'b0;
         endcase
     end
-end
-
-always_comb begin
-    case(type_control)
-    
-        b: begin
-            dout = {{24{sign_ext & memory[addr][7]}},memory[addr]};
-        end
-        
-        half: begin
-            dout = {{16{sign_ext & memory[addr+1][7]}},memory[addr+1],memory[addr]};           
-        end
-        
-        word: begin
-            dout = {memory[addr+3],memory[addr+2],memory[addr+1],memory[addr]}; 
-        end
-
-        default: dout = 32'b0;
-    endcase
-
-end
 
 endmodule
