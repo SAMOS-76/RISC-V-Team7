@@ -15,12 +15,12 @@ module memory #(
     input logic [DATA_WIDTH-1:0]  write_data,
     
     output logic [DATA_WIDTH-1:0] alu_result_out,
-    output logic [DATA_WIDTH-1:0] read_data
+    output logic [DATA_WIDTH-1:0] read_data,
     output logic stall
 );
 
    //pass through
-    assign alu_result_out = addr;
+    assign alu_result_out = alu_result;
 
     // signals between controller and sram
     logic [6:0]   sram_set_idx;
@@ -48,7 +48,7 @@ module memory #(
         .rst(rst),
         
         //cpu
-        .cpu_addr(addr),
+        .cpu_addr(alu_result),
         .cpu_wdata(write_data),
         .cpu_mem_write(mem_write) ,
         .cpu_mem_read(mem_read), 

@@ -5,7 +5,7 @@ module cache_sram (
     input  logic [302:0] wdata,  // [LRU:1][Way1:151][Way0:151]
     output logic [302:0] rdata
 );
-    //decidde on
+    //decided on
     // 128 sets
     // width Breakdown: 
     // 1 bit, LRU

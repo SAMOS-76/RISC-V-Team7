@@ -18,7 +18,7 @@ module regfile(
 
 logic [31:0] register [31:0];
 
-always_ff @(posedge clk) begin
+always_ff @(posedge clk, posedge rst) begin
 
     if(rst) begin
         register[0] <= 32'b0;

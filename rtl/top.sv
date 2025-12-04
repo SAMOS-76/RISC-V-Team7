@@ -39,7 +39,7 @@ module top #(
     logic [DATA_WIDTH-1:0]      r_out2;
     logic [1:0]                 type_control;
 
-    /* verilator lint_off UNUSED *///for now
+    /* verilator lint_off UNUSED *///unused in top for now
     logic [4:0]                 rs1;
     logic [4:0]                 rs2;
     logic                       zero;
@@ -111,22 +111,22 @@ module top #(
         .PCTarget(PCTarget)
     );
 
-    // memory stage (uses real clock - continues during stall)
+   //memory stage, contineus during stall - so can deal with cache miss
     memory memory_stage (
-        .clk(clk),
-        .rst(rst),
-        .mem_read(result_src[0]),  // decode read from result_src
-        .mem_write(mem_write),
-        .type_control(type_control),
-        .sign_ext_flag(sign_ext_flag),
-        .addr(ALUResult),
-        .write_data(r_out2),
-        .read_data(mem_read_data),
-        .alu_result_out(alu_result_out),
-        .stall(stall)  ///stall output to freeze other stages
-    );
+    .clk(clk),
+    .rst(rst),
+    .mem_read(result_src[0]),  // decode read from result_src
+    .mem_write(mem_write),
+    .type_control(type_control),
+    .sign_ext_flag(sign_ext_flag),
+    .alu_result(ALUResult),
+    .write_data(r_out2),
+    .read_data(mem_read_data),
+    .alu_result_out(alu_result_out),
+    .stall(stall)  // stall output to freeze other stages
+);  
 
-    // writeback stage (combinational)
+    // writeback
     writeback writeback_stage (
         .result_src(result_src),
         .alu_result(alu_result_out),
