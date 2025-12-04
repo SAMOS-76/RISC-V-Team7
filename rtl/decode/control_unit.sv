@@ -55,6 +55,11 @@ module control_unit (
                 ResultSrc = 2'b00;  // ALU result
                 ALUSrcB    = 1'b0;   // Use reg values
                 aluOp     = 2'b10;
+
+                // Detect RV32M instruction
+                if (instr[31:25] == 7'b0000001) begin
+                    aluOp = 2'b11;
+                end
             end
 
             7'b1100011: begin  // B type (Branches)

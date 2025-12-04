@@ -9,12 +9,26 @@ module alu_decoder(
         case (aluOp)
             2'b00: aluControl = 4'b0000;  // add
             
+            // 2'b01: begin  // Branch operations
+            //     case (funct3)
+            //         3'b000, 3'b001: aluControl = 4'b1000;  // BEQ/BNE
+            //         3'b100, 3'b101: aluControl = 4'b0010;  // BLT/BGE
+            //         3'b110, 3'b111: aluControl = 4'b0011;  // BLTU/BGEU
+            //         default: aluControl = 4'b1000;
+            //     endcase
+            // end
             2'b01: begin  // Branch operations
                 case (funct3)
-                    3'b000, 3'b001: aluControl = 4'b1000;  // BEQ/BNE
-                    3'b100, 3'b101: aluControl = 4'b0010;  // BLT/BGE
-                    3'b110, 3'b111: aluControl = 4'b0011;  // BLTU/BGEU
-                    default: aluControl = 4'b1000;
+                    // Equality checks: Use SUB so the ALU generates the 'zero' flag
+                    3'b000, 3'b001: aluControl = 4'b0001;  // BEQ, BNE -> SUB
+                    
+                    // Signed Magnitude: Use SLT so the ALU generates a 1 or 0 in the LSB
+                    3'b100, 3'b101: aluControl = 4'b0011;  // BLT, BGE -> SLT
+                    
+                    // Unsigned Magnitude: Use SLTU
+                    3'b110, 3'b111: aluControl = 4'b0100;  // BLTU, BGEU -> SLTU
+                    
+                    default: aluControl = 4'b0000;
                 endcase
             end
             
@@ -47,6 +61,16 @@ module alu_decoder(
                     
                     3'b111: aluControl = 4'b0111;  // AND/ANDI
                     
+                    default: aluControl = 4'b0000;
+                endcase
+            end
+
+            2'b11: begin 
+                case (funct3)
+                    3'b000: aluControl = 4'b1010; // MUL
+                    3'b001: aluControl = 4'b1011; // MULH
+                    3'b010: aluControl = 4'b1100; // MULHSU
+                    3'b011: aluControl = 4'b1101; // MULHU
                     default: aluControl = 4'b0000;
                 endcase
             end

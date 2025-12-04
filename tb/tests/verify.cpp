@@ -48,6 +48,14 @@ TEST_F(CpuTestbench, TestPdf)
     EXPECT_EQ(top_->a0, 15363);
 }
 
+TEST_F(CpuTestbench, TestMul)
+{
+    setupTest("mul");
+    initSimulation();
+    runSimulation(CYCLES);
+    EXPECT_EQ(top_->a0, 35);
+}
+
 int main(int argc, char **argv)
 {
     testing::InitGoogleTest(&argc, argv);
