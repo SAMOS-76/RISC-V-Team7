@@ -59,6 +59,33 @@ module cache_controller (
     logic [3:0]  offset ;
     assign {tag, set_idx, offset} = {cpu_addr[31:11], cpu_addr[10:4], cpu_addr[3:0]};
 
+    //latch request info at miss so controller is robust if cpu changes signals under stall
+    logic [20:0] miss_tag;
+    logic [6:0]  miss_set_idx;
+    logic [3:0]  miss_offset ;
+    logic [1:0]  miss_type;
+    logic [31:0] miss_wdata;
+    logic        miss_is_write;
+
+    always_ff @(posedge clk, posedge rst) begin
+        if (rst) begin
+            miss_tag      <= '0;
+            miss_set_idx  <= '0;
+            miss_offset   <= '0;
+            miss_type     <= 2'b00;
+            miss_wdata    <= '0;
+            miss_is_write <= 1'b0;
+        end else if (state == IDLE && (cpu_mem_read || cpu_mem_write) && !(w0_valid && (w0_tag == tag)) && !(w1_valid && (w1_tag == tag))) begin
+            // latch the miss-causing request
+            miss_tag      <= tag;
+            miss_set_idx  <= set_idx;
+            miss_offset   <= offset;
+            miss_type     <= cpu_type;
+            miss_wdata    <= cpu_wdata;
+            miss_is_write <= cpu_mem_write;
+        end
+    end
+
     //unpack 303-bit sram data
     // [LRU:1][Way1: V  D  Tag  Data][Way0: V  D  Tag  Data]
     logic        lru_bit;                 // LRU bit: 0 ofc way0, 1=use way1
@@ -139,10 +166,10 @@ module cache_controller (
     logic [127:0] refill_line_merged;
     cache_write_formatter refill_write_fmt (
         .line_in(refill_line_raw),
-        .offset(offset),
-        .size_type(cpu_type),
-        .wdata(cpu_wdata),
-        .write_en(cpu_mem_write), 
+        .offset(miss_offset),
+        .size_type(miss_type),
+        .wdata(miss_wdata),
+        .write_en(miss_is_write), 
         .line_out(refill_line_merged )
     );
 
@@ -155,7 +182,8 @@ module cache_controller (
         burst_inc  = 1'b0;
         burst_rst  = 1'b0 ;
         
-        sram_set_idx  = set_idx;
+        // use live set index only in IDLE; during miss handling, stick with latched miss_set_idx
+        sram_set_idx  = (state == IDLE) ? set_idx : miss_set_idx;
         sram_write_en = 1'b0;
         sram_wdata    = '0;
 
@@ -199,7 +227,7 @@ module cache_controller (
                 //evict dirty victim line to main mem (4-word burst write)
                 stall = 1'b1;
                 mem_write_en = 1'b1 ;
-                mem_addr = { victim_tag, set_idx, burst_cnt, 2'b00};  // form address
+                mem_addr = { victim_tag, miss_set_idx, burst_cnt, 2'b00};  // form address using latched set index
                 
                 // selct which word to wb
                 case(burst_cnt)
@@ -219,7 +247,7 @@ module cache_controller (
             ALLOCATE: begin
                 //fetch new line from main memory -  burst read 
                 stall = 1'b1;
-                mem_addr = {tag, set_idx, burst_cnt, 2'b00} ;
+                mem_addr = {miss_tag, miss_set_idx, burst_cnt, 2'b00} ;
                 burst_inc = 1'b1;
                 
                 if (burst_cnt == 2'b11) 
@@ -233,9 +261,9 @@ module cache_controller (
 
                 //write to victim way with new
                 if (victim_way == 0)
-                    sram_wdata = {new_lru, w1_valid, w1_dirty, w1_tag, w1_data, 1'b1, cpu_mem_write, tag, refill_line_merged};
+                    sram_wdata = {new_lru, w1_valid, w1_dirty, w1_tag, w1_data, 1'b1, miss_is_write, miss_tag, refill_line_merged};
                 else
-                    sram_wdata = {new_lru, 1'b1,  cpu_mem_write, tag, refill_line_merged, w0_valid, w0_dirty, w0_tag, w0_data};
+                    sram_wdata = {new_lru, 1'b1,  miss_is_write, miss_tag, refill_line_merged, w0_valid, w0_dirty, w0_tag, w0_data};
                 
                 next_state = IDLE;
             end
