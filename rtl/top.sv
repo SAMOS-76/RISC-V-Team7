@@ -7,14 +7,22 @@ module top #(
     output  logic [DATA_WIDTH-1:0] a0
 );
 
-    // Fetch
+    //stall signal from cache , creates combinational loop warning - which is finne
+    /* verilator lint_off UNOPTFLAT */
+    logic stall;
+    /* verilator lint_on UNOPTFLAT */
+    
+    // gated clock for fetch/decode/execute stages
+    logic cpu_clk;
+    assign cpu_clk = clk && !stall;  //freeze these stages during cache miss
+
+    //for ppl stagess
     logic                       PCSrc;
     logic [DATA_WIDTH-1:0]      PCTarget;
     logic [DATA_WIDTH-1:0]      instr;
     logic [DATA_WIDTH-1:0]      pc_out;
     logic [DATA_WIDTH-1:0]      pc_out4;
 
-    // decode
     logic                       PCTargetSrc;
     logic                       RegWrite;
     logic [1:0]                 result_src;
@@ -31,29 +39,21 @@ module top #(
     logic [DATA_WIDTH-1:0]      r_out2;
     logic [1:0]                 type_control;
 
-    /* verilator lint_off UNUSED */
+    /* verilator lint_off UNUSED *///for now
     logic [4:0]                 rs1;
     logic [4:0]                 rs2;
-    /* verilator lint_on UNUSED */
-
-    logic [4:0]                 rd;
-
-    // Execute
-    logic [DATA_WIDTH-1:0]      ALUResult;
-
-    /* verilator lint_off UNUSED */
     logic                       zero;
     /* verilator lint_on UNUSED */
 
-    //memory
+    logic [4:0]                 rd;
+    logic [DATA_WIDTH-1:0]      ALUResult;
     logic [DATA_WIDTH-1:0]      mem_read_data;
     logic [DATA_WIDTH-1:0]      alu_result_out;
-
-    // writeback
     logic [DATA_WIDTH-1:0]      result;
 
+    // fetch stage (uses gated clock - can be frozen)
     fetch fetch_stage (
-        .clk(clk),
+        .clk(cpu_clk),
         .rst(rst),
         .PCSrc(PCSrc),
         .trigger(trigger),
@@ -63,16 +63,17 @@ module top #(
         .pc_out(pc_out)
     );
 
+    // decode stage (uses gatted clock - can be frozen)
     decode decode_stage(
-        .clk(clk),
+        .clk(cpu_clk),
         .rst(rst),
-        .instr(instr),
+        .instr(instr) ,
         .data_in(result),
         .wb_write_en(RegWrite),
         .wb_rd(rd),
         .PCTargetSrc(PCTargetSrc),
         .RegWrite(RegWrite),
-        .result_src(result_src),
+        .result_src(result_src) ,
         .mem_write(mem_write),
         .alu_control(alu_control),
         .alu_srcA(alu_srcA),
@@ -91,6 +92,7 @@ module top #(
         .a0(a0)
     );
 
+    // execute stage
     execute execute_stage (
         .alu_control(alu_control),
         .ALUSrcA(alu_srcA),
@@ -109,17 +111,22 @@ module top #(
         .PCTarget(PCTarget)
     );
 
+    // memory stage (uses real clock - continues during stall)
     memory memory_stage (
         .clk(clk),
+        .rst(rst),
+        .mem_read(result_src[0]),  // decode read from result_src
         .mem_write(mem_write),
         .type_control(type_control),
         .sign_ext_flag(sign_ext_flag),
-        .alu_result(ALUResult),
+        .addr(ALUResult),
         .write_data(r_out2),
+        .read_data(mem_read_data),
         .alu_result_out(alu_result_out),
-        .read_data(mem_read_data)
+        .stall(stall)  ///stall output to freeze other stages
     );
 
+    // writeback stage (combinational)
     writeback writeback_stage (
         .result_src(result_src),
         .alu_result(alu_result_out),
