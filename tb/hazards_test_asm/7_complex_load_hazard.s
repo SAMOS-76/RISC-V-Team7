@@ -21,4 +21,4 @@ add    a0, x2, x1
 
 
 
-#should output 6
+#should output 18

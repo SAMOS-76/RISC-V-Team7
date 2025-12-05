@@ -14,15 +14,13 @@ module execute #(
     input  logic [DATA_WIDTH-1:0] imm_ext,
     
     output logic [DATA_WIDTH-1:0] ALUResult,
-    output logic                  zero,
-    output logic                  PCSrc,
-    output logic [DATA_WIDTH-1:0] PCTarget
+    output logic [DATA_WIDTH-1:0] PCTarget,
+    output logic                  branch_taken
 );
     logic [DATA_WIDTH-1:0] op1;
     logic [DATA_WIDTH-1:0] op2;
     logic [DATA_WIDTH-1:0] PCoperand;
     logic                  ALUlsb;
-    logic                  branch_taken;
 
     always_comb begin : ALU_Operand_select
         op1 = ALUSrcA ? PC : rs1;
@@ -51,7 +49,5 @@ module execute #(
         PCoperand = PCTargetSrc ? rs1 : PC;
         PCTarget  = PCoperand + imm_ext;
     end
-
-    assign PCSrc = Jump | (Branch & branch_taken);
     
 endmodule
