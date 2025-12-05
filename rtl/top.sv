@@ -102,7 +102,8 @@ module top #(
     logic stateful_PC_en;
     logic no_op;
 
-    logic Flush;
+    logic CTRL_Flush;
+    logic reg_flush;
     logic branch_taken;
 
     always_ff @(negedge clk) begin
@@ -110,6 +111,7 @@ module top #(
         stateful_PC_en <= PC_en;
     end
 
+    assign reg_flush = CTRL_Flush || rst;
 
     fetch fetch_stage (
         .clk(clk),
@@ -125,7 +127,7 @@ module top #(
 
     F_D_reg F_D (
         .clk(clk),
-        .rst(rst || 0),
+        .rst(reg_flush),
         .F_D_en(stateful_F_D_en),
         .F_instr(F_instr),
         .F_pc_out(F_pc_out),
@@ -166,7 +168,7 @@ module top #(
 
     D_E_reg D_E (
         .clk(clk),
-        .rst(rst || 0),
+        .rst(reg_flush),
         .D_E_en(D_E_en),
         .D_RegWrite(D_RegWrite),
         .D_PCTargetSrc(D_PCTargetSrc),
@@ -357,7 +359,7 @@ module top #(
         .branch_taken(branch_taken),
         .rst(rst),
         .PCSrc(F_PCSrc),
-        .Flush(Flush)
+        .Flush(CTRL_Flush)
 
     );
 
