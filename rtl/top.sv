@@ -63,7 +63,6 @@ module top #(
     logic [4:0] E_rb;
 
     logic [DATA_WIDTH-1:0] E_ALUResult;
-    logic E_zero;
 
     logic M_mem_write;
     logic M_RegWrite;
@@ -108,7 +107,7 @@ module top #(
 
     always_ff @(negedge clk) begin
         stateful_F_D_en <= F_D_en;
-        stateful_PC_en <= PC_en;
+        stateful_PC_en  <= PC_en;
     end
 
     assign reg_flush = CTRL_Flush || rst;
@@ -235,7 +234,6 @@ module top #(
         .ALUSrcB(E_alu_srcB),
         .PCTargetSrc(E_PCTargetSrc),
         .Branch(E_Branch),
-        .Jump(E_Jump),
         .branch_taken(branch_taken),
         .branchType(E_branchType),
         .PC(E_pc_out),
@@ -357,7 +355,6 @@ module top #(
         .Branch(E_Branch),
         .Jump(E_Jump),
         .branch_taken(branch_taken),
-        .rst(rst),
         .PCSrc(F_PCSrc),
         .Flush(CTRL_Flush)
 

@@ -47,7 +47,6 @@ module hazard_unit(
     input  logic            Branch,
     input  logic            branch_taken,
     input  logic            Jump,
-    input  logic            rst,
 
     output logic            PCSrc,
     output logic            Flush
@@ -112,16 +111,17 @@ end
 logic branch_mispredict;
 
 always_comb begin : control_hazard
-    Flush = 1'b0;
-    PCSrc = 1'b0;
-
-    if (rst) begin
-        Flush = 1'b0;
-        PCSrc = 1'b0;
-    end else begin
-        branch_mispredict = (Branch && branch_taken);
+    
+    if (Branch) begin
+        branch_mispredict = branch_taken;
         PCSrc = branch_mispredict || Jump;
         Flush = branch_mispredict || Jump;
+    end
+
+    else begin
+        Flush             = 0;
+        PCSrc             = 0;
+        branch_mispredict = 0;
     end
     
 end
