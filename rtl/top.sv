@@ -126,7 +126,8 @@ module top #(
 
     F_D_reg F_D (
         .clk(clk),
-        .rst(reg_flush),
+        .rst(rst), //issue is here
+        .CTRL_Flush(CTRL_Flush),
         .F_D_en(stateful_F_D_en),
         .F_instr(F_instr),
         .F_pc_out(F_pc_out),
