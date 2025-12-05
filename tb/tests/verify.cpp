@@ -54,3 +54,18 @@ int main(int argc, char **argv)
     auto res = RUN_ALL_TESTS();
     return res;
 }
+
+//OUR OWN Tests
+//
+
+TEST_F(CpuTestbench, TestBurstCache)
+{
+    setupTest("6_burst_benefit");
+    setData("reference/gaussian.mem"); 
+    
+    initSimulation();
+
+    unsigned int start_cycles = ticks_;
+    runSimulation(5000); 
+    EXPECT_EQ(top_->a0, 3486243318); 
+}
