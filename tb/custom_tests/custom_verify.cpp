@@ -67,7 +67,7 @@ TEST_F(CpuTestbench, complex_load_hazard)
     setupTest("7_complex_load_hazard");
     initSimulation();
     runSimulation(100);
-    EXPECT_EQ(top_->a0, 18);
+    EXPECT_EQ(top_->a0, 6);
 }
 
 

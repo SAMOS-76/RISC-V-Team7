@@ -97,18 +97,17 @@ module top #(
     logic F_D_en;
     logic D_E_en;
     logic PC_en;
-    logic stateful_F_D_en;
-    logic stateful_PC_en;
     logic no_op;
 
     logic CTRL_Flush;
     logic reg_flush;
     logic branch_taken;
 
-    always_ff @(negedge clk) begin
-        stateful_F_D_en <= F_D_en;
-        stateful_PC_en  <= PC_en;
-    end
+    // always_ff @(posedge clk) begin
+    //     stateful_F_D_en <= F_D_en;
+    //     stateful_PC_en  <= PC_en;
+    // end
+
 
     assign reg_flush = CTRL_Flush || rst;
 
@@ -121,14 +120,14 @@ module top #(
         .Instr(F_instr),
         .pc_out4(F_pc_out4),
         .pc_out(F_pc_out),
-        .PC_en(stateful_PC_en)
+        .PC_en(PC_en)
     );
 
     F_D_reg F_D (
         .clk(clk),
         .rst(rst), //issue is here
         .CTRL_Flush(CTRL_Flush),
-        .F_D_en(stateful_F_D_en),
+        .F_D_en(F_D_en),
         .F_instr(F_instr),
         .F_pc_out(F_pc_out),
         .F_pc_out4(F_pc_out4),
@@ -251,6 +250,7 @@ module top #(
     assign stall_control_mem_write = E_mem_write && ~no_op;
     assign stall_control_reg_write = E_RegWrite && ~no_op;
 
+
     E_M_reg E_M (
         .clk(clk),
         .rst(rst),
@@ -317,6 +317,8 @@ module top #(
     hazard_unit h_u(
 
         .clk(clk),
+
+        .rst(rst),
 
         .PC_en(PC_en),
         .F_D_en(F_D_en),

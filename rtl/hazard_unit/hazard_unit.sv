@@ -8,6 +8,8 @@ typedef enum logic [1:0]{
 module hazard_unit(
     input logic         clk,
 
+    input logic         rst,
+
     input  logic    [4:0] d_reg_a,
     input  logic    [4:0] d_reg_b,
     input  logic    [6:0] d_opcode,
@@ -68,8 +70,8 @@ always_comb begin : opcode_check
     E_reg_1_valid = ~(E_opcode == 7'b0010111 | E_opcode == 7'b0110111 | E_opcode == 7'b1101111);
     E_reg_2_valid = ~(E_opcode == 7'b0010111 | E_opcode == 7'b0110111 | E_opcode == 7'b1100111 | E_opcode == 7'b1101111 | E_opcode == 7'b0000011 | E_opcode == 7'b0010011);
 
-    W_reg_c_valid = ~(W_opcode == 7'b0100011 | W_opcode == 7'b1100011);
-    M_reg_c_valid = ~(M_opcode == 7'b0100011 | M_opcode == 7'b1100011);
+    W_reg_c_valid = ~(W_opcode == 7'b0100011 | W_opcode == 7'b1100011 | ~wb_reg_write_enable);
+    M_reg_c_valid = ~(M_opcode == 7'b0100011 | M_opcode == 7'b1100011 | ~datamem_reg_write_enable);
 end
 
 assign PC_en = reg_en;
@@ -77,8 +79,40 @@ assign F_D_en = reg_en;
 assign D_E_en = reg_en;
 assign no_op = ~reg_en;
 
+logic delay;
+
+logic A_L_haz;
+logic D_A_W_L_haz;
+
+assign A_L_haz = (E_opcode == 7'b0000011 && (((d_reg_a == ex_reg_d) && d_reg_1_valid) || ((d_reg_b == ex_reg_d) && d_reg_2_valid)) && ~delay);
+
+
+
+//| W_opcode == 7'b0000011 && W_reg_c_valid && (((d_reg_a == wb_reg_write_addr) && d_reg_1_valid) || ((d_reg_b == wb_reg_write_addr) && d_reg_2_valid))
+
 always_ff @(negedge clk) begin
-reg_en <= ~(E_opcode == 7'b0000011 && (((d_reg_a == ex_reg_d) && d_reg_1_valid) || ((d_reg_b == ex_reg_d) && d_reg_2_valid)) && ~no_op);
+
+    D_A_W_L_haz <=  W_opcode == 7'b0000011 && W_reg_c_valid && (((d_reg_a == wb_reg_write_addr) && d_reg_1_valid) || ((d_reg_b == wb_reg_write_addr) && d_reg_2_valid));
+
+
+    if(rst) begin
+        reg_en <= 1;
+        delay <= 0;
+        D_A_W_L_haz <= 0;
+    end
+    
+    else if(A_L_haz
+        || D_A_W_L_haz) begin
+        reg_en <= 0;
+        delay <= 1;
+    
+    end
+    else if (delay) begin
+        reg_en <= 1;
+        delay <= 0;
+    
+    
+    end
 end
 
 
