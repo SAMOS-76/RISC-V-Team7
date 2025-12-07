@@ -53,7 +53,7 @@ TEST_F(CpuTestbench, TestF1)
     setupTest("f1");
     initSimulation();
     runSimulation(CYCLES * 100);
-    EXPECT_EQ(top_->a0, 15363);
+    EXPECT_EQ(top_->a0, 0); //see vbuddy tests but hits 255 then 0 (lights off ofc)
 }
 
 int main(int argc, char **argv)

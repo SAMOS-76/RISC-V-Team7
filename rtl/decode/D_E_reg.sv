@@ -3,6 +3,10 @@ module D_E_reg #(
 ) (
     input  logic clk,
     input  logic rst,
+
+    input  logic CTRL_Flush,
+    
+    input  logic D_E_en,
     input  logic D_RegWrite,
     input  logic D_PCTargetSrc,
     input  logic [1:0] D_result_src,
@@ -76,7 +80,32 @@ module D_E_reg #(
             E_opcode <= 0;
             E_is_div <= 0;
         end 
-        else 
+        //only flush if the flush isnt from the instruction currently in E stage
+        // this prevented corrupt PC+4 when JAL/Branch executes
+        else if (CTRL_Flush && !(E_Jump || E_Branch)) begin
+            E_RegWrite <= 0;
+            E_PCTargetSrc <= 0;
+            E_result_src <= 0;
+            E_mem_write <= 0;
+            E_alu_control <= 0;
+            E_alu_srcA <= 0;
+            E_alu_srcB <= 0;
+            E_sign_ext_flag <= 0;
+            E_Branch <= 0;
+            E_Jump <= 0;
+            E_branchType <= 0;
+            E_pc_out <= 0;
+            E_pc_out4 <= 0;
+            E_imm_ext <= 0;
+            E_r_out1 <= 0;
+            E_r_out2 <= 0;
+            E_type_control <= 0;
+            E_rd <= 0;
+            E_ra <= 0;
+            E_rb <= 0;
+            E_opcode <= 0;
+        end
+        else if (D_E_en)
         begin
             E_RegWrite <= D_RegWrite;
             E_PCTargetSrc <= D_PCTargetSrc;
