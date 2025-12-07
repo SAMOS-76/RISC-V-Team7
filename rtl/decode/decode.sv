@@ -39,8 +39,6 @@ module decode #(
 
     control_unit control_unit(
         .instr(instr),
-        .alu_zero(1'b0),
-        .alu_result_0(1'b0), //unsued input? 
         .ALUControl(alu_control),
         .ALUSrcB(alu_srcB),
         .ALUSrcA(alu_srcA),

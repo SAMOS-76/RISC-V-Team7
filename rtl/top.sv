@@ -100,16 +100,12 @@ module top #(
     logic no_op;
 
     logic CTRL_Flush;
-    logic reg_flush;
     logic branch_taken;
 
     // always_ff @(posedge clk) begin
     //     stateful_F_D_en <= F_D_en;
     //     stateful_PC_en  <= PC_en;
     // end
-
-
-    assign reg_flush = CTRL_Flush || rst;
 
     fetch fetch_stage (
         .clk(clk),

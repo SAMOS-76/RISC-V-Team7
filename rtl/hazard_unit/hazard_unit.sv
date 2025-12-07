@@ -74,10 +74,14 @@ always_comb begin : opcode_check
     M_reg_c_valid = ~(M_opcode == 7'b0100011 | M_opcode == 7'b1100011 | ~datamem_reg_write_enable);
 end
 
-assign PC_en = reg_en;
-assign F_D_en = reg_en;
-assign D_E_en = reg_en;
-assign no_op = ~reg_en;
+
+
+always_comb begin : reg_enables
+    PC_en  = reg_en;
+    F_D_en = reg_en;
+    D_E_en = reg_en;
+    no_op  = ~reg_en;
+end
 
 logic delay;
 
@@ -85,8 +89,6 @@ logic A_L_haz;
 logic D_A_W_L_haz;
 
 assign A_L_haz = (E_opcode == 7'b0000011 && (((d_reg_a == ex_reg_d) && d_reg_1_valid) || ((d_reg_b == ex_reg_d) && d_reg_2_valid)) && ~delay);
-
-
 
 //| W_opcode == 7'b0000011 && W_reg_c_valid && (((d_reg_a == wb_reg_write_addr) && d_reg_1_valid) || ((d_reg_b == wb_reg_write_addr) && d_reg_2_valid))
 
@@ -159,9 +161,9 @@ always_comb begin : control_hazard
     end*/
 
     if (Branch) begin
-    branch_mispredict = branch_taken;
-    PCSrc = branch_mispredict;
-    Flush = branch_mispredict;
+        branch_mispredict = branch_taken;
+        PCSrc = branch_mispredict;
+        Flush = branch_mispredict;
     end
 
     else if (Jump) begin
