@@ -23,4 +23,3 @@ lights_out:
 
 end:
     j     end
-    
