@@ -35,6 +35,7 @@ module top #(
     logic [4:0] D_rs1;
     logic [4:0] D_rs2;
     logic [4:0] D_rd;
+    logic D_is_div,
 
     logic E_PCTargetSrc;
     logic E_RegWrite;
@@ -59,6 +60,7 @@ module top #(
     logic [4:0] E_rd;
     logic [4:0] E_ra;
     logic [4:0] E_rb;
+    logic E_is_div,
 
     logic [DATA_WIDTH-1:0] E_ALUResult;
     logic E_zero;
@@ -173,6 +175,7 @@ module top #(
         .D_ra(D_rs1),
         .D_rb(D_rs2),
         .D_opcode(D_opcode),
+        .D_is_div(D_is_div),
         .E_RegWrite(E_RegWrite),
         .E_PCTargetSrc(E_PCTargetSrc),
         .E_result_src(E_result_src),
@@ -193,7 +196,8 @@ module top #(
         .E_rd(E_rd),
         .E_ra(E_ra),
         .E_rb(E_rb),
-        .E_opcode(E_opcode)
+        .E_opcode(E_opcode),
+        .E_is_div(E_is_div)
     );
 
     always_comb begin
@@ -213,6 +217,8 @@ module top #(
     end
 
     execute execute_stage (
+        .clk(clk)
+        .is_div(E_is_div),
         .alu_control(E_alu_control),
         .ALUSrcA(E_alu_srcA),
         .ALUSrcB(E_alu_srcB),

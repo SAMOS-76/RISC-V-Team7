@@ -11,10 +11,10 @@ module alu_decoder(
             
             2'b01: begin  // Branch operations
                 case (funct3)
-                    3'b000, 3'b001: aluControl = 4'b1000;  // BEQ/BNE
-                    3'b100, 3'b101: aluControl = 4'b0010;  // BLT/BGE
-                    3'b110, 3'b111: aluControl = 4'b0011;  // BLTU/BGEU
-                    default: aluControl = 4'b1000;
+                    3'b000, 3'b001: aluControl = 4'b0001;  // BEQ/BNE
+                    3'b100, 3'b101: aluControl = 4'b0011;  // BLT/BGE
+                    3'b110, 3'b111: aluControl = 4'b0100;  // BLTU/BGEU
+                    default: aluControl = 4'b0000;
                 endcase
             end
             
@@ -47,6 +47,24 @@ module alu_decoder(
                     
                     3'b111: aluControl = 4'b0111;  // AND/ANDI
                     
+                    default: aluControl = 4'b0000;
+                endcase
+            end
+
+            //MUL and DIV cases
+            2'b11:begin
+                case (funct3)
+                    3'b000: aluControl = 4'b1010; // MUL
+                    3'b001: aluControl = 4'b1011; // MULH
+                    3'b010: aluControl = 4'b1100; // MULHSU
+                    3'b011: aluControl = 4'b1101; // MULHU
+
+                    // Some codes map to same place. rember to change!
+                    3'b100: aluControl = 4'b1110; // DIV
+                    3'b101: aluControl = 4'b1111; // DIVU
+                    3'b110: aluControl = 4'b0110; // REM
+                    3'b111: aluControl = 4'b0111; // REMU
+
                     default: aluControl = 4'b0000;
                 endcase
             end

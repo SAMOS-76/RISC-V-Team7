@@ -22,6 +22,9 @@ module control_unit (
     output logic        Branch,     // Branch instruction flag
     output logic        Jump,       // Jump instruction flag
     output logic [2:0]  branchType  // BEQ,BGT ...
+
+    // Signals for MUL and DIV
+    output logic        is_div
 );
 
     logic [6:0] opcode;
@@ -56,6 +59,19 @@ module control_unit (
                 ResultSrc = 2'b00;  // ALU result
                 ALUSrcB   = 1'b0;   // Use reg values
                 aluOp     = 2'b10;
+
+                if (instr[31:25] == 7'b0000001) begin // For detecting RV32M instructions
+                    aluOp = 2'b11;
+
+                    case (funct3)
+                        3'b100, 3'b101, 3'b110, 3'b111: begin
+                            is_div = 1'b1;
+                        end
+                        default: begin
+                            is_div = 1'b0;
+                        end
+                    endcase
+                end
             end
 
             7'b1100011: begin  // B type (Branches)
