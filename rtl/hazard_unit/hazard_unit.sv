@@ -94,7 +94,7 @@ always_ff @(negedge clk) begin
 
     D_A_W_L_haz <=  W_opcode == 7'b0000011 && W_reg_c_valid && (((d_reg_a == wb_reg_write_addr) && d_reg_1_valid) || ((d_reg_b == wb_reg_write_addr) && d_reg_2_valid));
 
-
+    
     if(rst) begin
         reg_en <= 1;
         delay <= 0;
@@ -105,14 +105,13 @@ always_ff @(negedge clk) begin
         || D_A_W_L_haz) begin
         reg_en <= 0;
         delay <= 1;
-    
     end
     else if (delay) begin
         reg_en <= 1;
         delay <= 0;
-    
-    
+        
     end
+    
 end
 
 
@@ -146,9 +145,10 @@ logic branch_mispredict;
 
 always_comb begin : control_hazard
     
-    if (Branch) begin
+    //this only prcoesses jumps when brnahc is also high - jal and jalr J=1 B=0 !
+    /*if (Branch) begin
         branch_mispredict = branch_taken;
-        PCSrc = branch_mispredict || Jump;
+        PCSrc = branch_mispredict || Jump; //surely only considered when branch is true? 
         Flush = branch_mispredict || Jump;
     end
 
@@ -156,6 +156,23 @@ always_comb begin : control_hazard
         Flush             = 0;
         PCSrc             = 0;
         branch_mispredict = 0;
+    end*/
+
+    if (Branch) begin
+    branch_mispredict = branch_taken;
+    PCSrc = branch_mispredict;
+    Flush = branch_mispredict;
+    end
+
+    else if (Jump) begin
+        PCSrc = 1'b1;
+        Flush = 1'b1;
+        branch_mispredict = 1'b0;
+    end
+    else begin
+        Flush = 1'b0;
+        PCSrc = 1'b0;
+        branch_mispredict = 1'b0;
     end
     
 end

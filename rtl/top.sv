@@ -167,8 +167,9 @@ module top #(
 
     D_E_reg D_E (
         .clk(clk),
-        .rst(reg_flush),
+        .rst(rst),
         .D_E_en(D_E_en),
+        .CTRL_Flush(CTRL_Flush),
         .D_RegWrite(D_RegWrite),
         .D_PCTargetSrc(D_PCTargetSrc),
         .D_result_src(D_result_src),

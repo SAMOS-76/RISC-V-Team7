@@ -21,7 +21,10 @@ logic [31:0] register [31:0];
 always_ff @(posedge clk) begin
 
     if(rst) begin
-        register[0] <= 32'b0;
+        // Reset all registers to 0 as was testing reg undefined behave
+        for (int i = 0; i < 32; i++) begin
+            register[i] <= 32'b0;
+        end
     end
 
     // this was overwriting x0 if a3 ==0 !! Must be hardwired to 0.
