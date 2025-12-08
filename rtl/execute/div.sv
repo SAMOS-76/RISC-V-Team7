@@ -1,94 +1,96 @@
-module divider #( // takes 32 cycles to do a division to reduce impact on clock speed
-    DATA_WIDTH = 32
-) (
+module div #(
+    parameter DATA_WIDTH = 32
+)(
     input  logic clk,
-    input  logic start,
-    input  logic [DATA_WIDTH-1:0] dividend, // number to be divided by
-    input  logic [DATA_WIDTH-1:0] divisor, // number to divide by
-    input  logic signed_op, // 1 for signed division and 0 for unsigned
+
+    input  logic [DATA_WIDTH-1:0] dividend,
+    input  logic [DATA_WIDTH-1:0] divisor,
     output logic [DATA_WIDTH-1:0] quotient,
     output logic [DATA_WIDTH-1:0] remainder,
-    output logic ready
+    output logic is_finished,
+
+    input  logic is_unsigned,
+    input  logic triggered
 );
 
-// Internal signals
-logic [DATA_WIDTH-1:0] dividend_reg;
-logic [DATA_WIDTH-1:0] divisor_reg;
-logic [DATA_WIDTH-1:0] quotient_reg;
-logic [DATA_WIDTH-1:0] remainder_reg;
-logic [DATA_WIDTH-1:0] temp_reg;
-logic [5:0]  count;
-logic sign_dividend;
-logic sign_result;
-logic busy; // 1 if division is in progress
+    logic                     is_running;
+    logic [5:0]               cycle;
 
+    logic [DATA_WIDTH-1:0]    dividend_register;
+    logic [DATA_WIDTH-1:0]    divider_register;
+    logic [DATA_WIDTH-1:0]    quotient_reg;
+    logic [DATA_WIDTH-1:0]    remainder_reg;
 
-always_ff @(posedge clk) begin
-    if (start && !busy) begin
-        if (divisor == 32'b0) begin // handle division by zero
-            ready <= 1'b1;
-            busy <= 1'b0;
-            quotient <= !signed_op ? 32'hFFFFFFFF : 32'h7FFFFFFF; // Max value for error in both signed and unsigned case
-            remainder <= dividend; // Remainder is the dividend in case of division by zero as there is no meaningful result
-        end
-        else begin
-            ready <= 1'b0;
-            busy <= 1'b1;
-            // Handle signed operands if required
-            if (!signed_op) begin
-                sign_dividend <= dividend[DATA_WIDTH-1];
-                if (dividend == 32'h80000000) begin  // handle -2^31 (the smallest signed 32-bit value) case as can't negate -2^31 as would cause overflow
-                    dividend_reg <= dividend;  // Keep the dividend as is
-                    divisor_reg <= divisor[DATA_WIDTH-1] ? -divisor : divisor;  // Negate divisor if negative
-                    sign_result <= dividend[DATA_WIDTH-1] ^ divisor[DATA_WIDTH-1];
+    logic                     signed_result;
+    logic                     signed_remainder;
+
+    logic [DATA_WIDTH-1:0]    possible_remainder;
+    assign possible_remainder = {remainder_reg[DATA_WIDTH-2:0], dividend_register[DATA_WIDTH-1]};
+
+    always_ff @(posedge clk) begin
+        if (triggered && !is_running && !is_finished) begin
+            if (divisor == 0) begin
+                is_finished     <= 1;
+                is_running   <= 0;
+                quotient  <= is_unsigned ? 32'h7FFFFFFF : 32'hFFFFFFFF;
+                remainder <= dividend;
+            end 
+            else begin
+                is_running <= 1;
+                is_finished   <= 0;
+                cycle <= 0;
+
+                if (!is_unsigned) begin
+                    signed_remainder    <= dividend[DATA_WIDTH-1];
+                    signed_result <= dividend[DATA_WIDTH-1] ^ divisor[DATA_WIDTH-1];
+                    dividend_register <= dividend[DATA_WIDTH-1] ? -dividend : dividend;
+                    divider_register  <= divisor[DATA_WIDTH-1]  ? -divisor  : divisor;
                 end 
                 else begin
-                    dividend_reg <= dividend[DATA_WIDTH-1] ? -dividend : dividend;
-                    divisor_reg <= divisor[DATA_WIDTH-1] ? -divisor : divisor;
-                    sign_result <= dividend[DATA_WIDTH-1] ^ divisor[DATA_WIDTH-1];
+                    dividend_register <= dividend;
+                    divider_register  <= divisor;
+                    signed_remainder       <= 0;
+                    signed_result    <= 0;
                 end
-            end 
-            else begin
-                dividend_reg <= dividend;
-                divisor_reg <= divisor;
-                sign_dividend <= 1'b0;
-                sign_result <= 1'b0;
-            end
 
-            quotient_reg <= 32'b0;
-            remainder_reg <= 32'b0;
-            count <= 6'b0;
-        end 
-    end
-    else if (busy) begin
-        if (count < 32) begin // division is in progress
-            temp_reg = {remainder_reg[DATA_WIDTH-2:0], dividend_reg[DATA_WIDTH-1]};
-            dividend_reg <= {dividend_reg[DATA_WIDTH-2:0], 1'b0};
-            
-            if (temp_reg >= divisor_reg) begin
-                remainder_reg <= temp_reg - divisor_reg;
-                quotient_reg <= {quotient_reg[DATA_WIDTH-2:0], 1'b1};
-            end 
-            else begin
-                quotient_reg <= {quotient_reg[DATA_WIDTH-2:0], 1'b0};
-                remainder_reg <= temp_reg;
-            end
-
-            count <= count + 1;
-        end
-        else begin // division is complete
-            busy <= 1'b0;
-            ready <= 1'b1;
-            
-            if (!signed_op) begin
-                quotient <= sign_result ? -quotient_reg : quotient_reg;
-                remainder <= sign_dividend ? -remainder_reg : remainder_reg;
-            end 
-            else begin
-                quotient <= quotient_reg;
-                remainder <= remainder_reg;
+                quotient_reg <= '0;
+                remainder_reg <= '0;
             end
         end
+
+        else if (is_running) begin
+            if (cycle < 32) begin
+                dividend_register <= {dividend_register[DATA_WIDTH-2:0], 1'b0};
+
+                if (possible_remainder >= divider_register) begin
+                    remainder_reg <= possible_remainder - divider_register;
+                    quotient_reg <= {quotient_reg[DATA_WIDTH-2:0], 1'b1};
+                end
+                else begin
+                    remainder_reg <= possible_remainder;
+                    quotient_reg <= {quotient_reg[DATA_WIDTH-2:0], 1'b0};
+                end
+
+                cycle <= cycle + 1;
+            end
+            else begin
+                is_running <= 0;
+                is_finished   <= 1;
+
+                if (!is_unsigned) begin
+                    quotient  <= signed_result ? -quotient_reg : quotient_reg;
+                    remainder <= signed_remainder    ? -remainder_reg : remainder_reg;
+                end 
+                else begin
+                    quotient  <= quotient_reg;
+                    remainder <= remainder_reg;
+                end
+            end
+        end
+
+        else if (!triggered && is_finished) begin
+            is_finished <= 0;
+        end
     end
-end
+
 endmodule

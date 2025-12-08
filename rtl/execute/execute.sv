@@ -16,7 +16,8 @@ module execute #(
     
     output logic [DATA_WIDTH-1:0] ALUResult,
     output logic [DATA_WIDTH-1:0] PCTarget,
-    output logic                  branch_taken
+    output logic                  branch_taken,
+    output logic                  div_stall_flag
 );
     logic [DATA_WIDTH-1:0] op1;
     logic [DATA_WIDTH-1:0] op2;
@@ -27,7 +28,6 @@ module execute #(
     logic [DATA_WIDTH-1:0] alu_out;
     logic [DATA_WIDTH-1:0] quotient;
     logic [DATA_WIDTH-1:0] remainder; 
-    logic [DATA_WIDTH-1:0] divider_out;
     logic div_done;
     logic div_unsigned;
 
@@ -48,35 +48,33 @@ module execute #(
     assign ALUlsb = ALUResult[0];
     assign div_unsigned = alu_control[0];
 
-    divider div(
+    div div(
         .clk(clk),
-        .start(is_div),
+        .triggered(is_div),
         .dividend(op1),
         .divisor(op2),
-        .signed_op(div_unsigned),
+        .is_unsigned(div_unsigned),
         .quotient(quotient),
         .remainder(remainder),
-        .ready(div_done)
+        .is_finished(div_done)
     );
 
-    logic is_div_op = (alu_control == 4'b1110) || (alu_control == 4'b1111);
-    logic is_rem_op = (alu_control == 4'b0110) || (alu_control == 4'b0111);
 
+    assign div_stall_flag = (is_div) && !div_done;
 
     always_comb begin
-    ALUResult = alu_out;
+        ALUResult = alu_out;
 
-    if (is_div_op || is_rem_op) begin
-        if (div_done) begin
-            // Choose quotient vs remainder
-            if (is_rem_op)
-                ALUResult = remainder;
-            else
-                ALUResult = quotient;
+        if (is_div) begin
+            // If the divider is finished, we select its output.
+            if (div_done) begin
+                if (alu_control[3] == 1'b0) 
+                    ALUResult = remainder;
+                else
+                    ALUResult = quotient;
+            end
         end
-        // else ALUResult = alu_out (placeholder)
     end
-end
 
 
     branch_comparator branchComparator (

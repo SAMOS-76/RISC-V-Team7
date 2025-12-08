@@ -37,7 +37,7 @@ module top #(
     logic [4:0] D_rs1;
     logic [4:0] D_rs2;
     logic [4:0] D_rd;
-    logic D_is_div,
+    logic D_is_div;
 
     logic E_PCTargetSrc;
     logic E_RegWrite;
@@ -62,7 +62,7 @@ module top #(
     logic [4:0] E_rd;
     logic [4:0] E_ra;
     logic [4:0] E_rb;
-    logic E_is_div,
+    logic E_is_div;
 
     logic [DATA_WIDTH-1:0] E_ALUResult;
 
@@ -103,6 +103,8 @@ module top #(
 
     logic CTRL_Flush;
     logic branch_taken;
+
+    logic div_stall_flag;
 
     // always_ff @(posedge clk) begin
     //     stateful_F_D_en <= F_D_en;
@@ -160,7 +162,8 @@ module top #(
         .rs2(D_rs2),
         .rd(D_rd),
         .a0(a0),
-        .opcode(D_opcode)
+        .opcode(D_opcode),
+        .is_div(D_is_div)
     );
 
     D_E_reg D_E (
@@ -230,7 +233,7 @@ module top #(
     end
 
     execute execute_stage (
-        .clk(clk)
+        .clk(clk),
         .is_div(E_is_div),
         .alu_control(E_alu_control),
         .ALUSrcA(E_alu_srcA),
@@ -244,7 +247,8 @@ module top #(
         .rs2(E_forwarded_2),
         .imm_ext(E_imm_ext),
         .ALUResult(E_ALUResult),
-        .PCTarget(F_PCTarget)
+        .PCTarget(F_PCTarget),
+        .div_stall_flag(div_stall_flag)
     );
 
     wire stall_control_mem_write;
@@ -362,8 +366,9 @@ module top #(
         .Jump(E_Jump),
         .branch_taken(branch_taken),
         .PCSrc(F_PCSrc),
-        .Flush(CTRL_Flush)
+        .Flush(CTRL_Flush),
 
+        .div_stall(div_stall_flag)
     );
 
 endmodule

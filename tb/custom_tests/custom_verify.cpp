@@ -116,7 +116,21 @@ TEST_F(CpuTestbench, test_diagnostic_debug)
     EXPECT_EQ(top_->a0, 39);
 }
 
+TEST_F(CpuTestbench, TestMul)
+{
+    setupTest("mul");
+    initSimulation();
+    runSimulation(20000);
+    EXPECT_EQ(top_->a0, 1);
+}
 
+TEST_F(CpuTestbench, TestDiv)
+{
+    setupTest("div");
+    initSimulation();
+    runSimulation(20000);
+    EXPECT_EQ(top_->a0, 2);
+}
 
 int main(int argc, char **argv)
 {

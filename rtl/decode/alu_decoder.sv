@@ -57,7 +57,7 @@ module alu_decoder(
                     3'b000: aluControl = 4'b1010; // MUL
                     3'b001: aluControl = 4'b1011; // MULH
                     3'b010: aluControl = 4'b1100; // MULHSU
-                    3'b011: aluControl = 4'b1101; // MULHU
+                    3'b011: aluControl = 4'b1001; // MULHU
 
                     // Some codes map to same place. rember to change!
                     3'b100: aluControl = 4'b1110; // DIV

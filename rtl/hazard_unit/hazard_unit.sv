@@ -34,6 +34,8 @@ module hazard_unit(
     input   logic   [4:0] wb_reg_write_addr,
     input   logic   [6:0] W_opcode,
 
+    input   logic   div_stall, // Divider stall flag
+
 
     //outputs to mux's controlling inputs in ex stage
     output  forward_type    reg_a,
@@ -77,11 +79,11 @@ end
 
 
 always_comb begin : reg_enables
-    PC_en  = reg_en;
-    F_D_en = reg_en;
-    D_E_en = reg_en;
-    no_op  = ~reg_en;
-end
+        PC_en  = reg_en && !div_stall; 
+        F_D_en = reg_en && !div_stall;
+        D_E_en = reg_en && !div_stall;
+        no_op  = (~reg_en) || div_stall; 
+    end
 
 logic delay;
 

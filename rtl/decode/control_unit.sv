@@ -19,7 +19,7 @@ module control_unit (
     // Signals for branch comparator in EX stage
     output logic        Branch,     // Branch instruction flag
     output logic        Jump,       // Jump instruction flag
-    output logic [2:0]  branchType  // BEQ,BGT ...
+    output logic [2:0]  branchType,  // BEQ,BGT ...
 
     // Signals for MUL and DIV
     output logic        is_div
@@ -50,6 +50,7 @@ module control_unit (
         branchType  = 3'b000;  // Type of branch BEQ BGT etc
         aluOp       = 2'b00;   // Intermediate signal decoded later
         PCTargetSrc = 1'b0;    // Use PC value directly in target adder not R1
+        is_div      = 1'b0;
 
         case (opcode)
             7'b0110011: begin  // R type
