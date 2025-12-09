@@ -70,6 +70,15 @@ TEST_F(CpuTestbench, complex_load_hazard)
     EXPECT_EQ(top_->a0, 6);
 }
 
+TEST_F(CpuTestbench, out_lbu)
+{
+    setupTest("8_out_lbu");
+    initSimulation();
+    runSimulation(1000);
+    EXPECT_EQ(top_->a0, 300);
+}
+
+
 
 TEST_F(CpuTestbench, test_diagnostic)
 {

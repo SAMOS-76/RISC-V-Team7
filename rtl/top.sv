@@ -161,16 +161,25 @@ module top #(
         .opcode(D_opcode)
     );
 
+    //wire stall_control_mem_write;
+    //wire stall_control_reg_write;
+
+    //assign stall_control_mem_write = D_mem_write && ~no_op;
+    //assign stall_control_reg_write = D_RegWrite && ~no_op;
+
+
+
+
     D_E_reg D_E (
         .clk(clk),
         .rst(rst),
         .no_op(no_op),
         .D_E_en(D_E_en),
         .CTRL_Flush(CTRL_Flush),
-        .D_RegWrite(stall_control_reg_write),
+        .D_RegWrite(D_RegWrite),
         .D_PCTargetSrc(D_PCTargetSrc),
         .D_result_src(D_result_src),
-        .D_mem_write(stall_control_mem_write),
+        .D_mem_write(D_mem_write),
         .D_alu_control(D_alu_control),
         .D_alu_srcA(D_alu_srcA),
         .D_alu_srcB(D_alu_srcB),
@@ -242,11 +251,6 @@ module top #(
         .PCTarget(F_PCTarget)
     );
 
-    wire stall_control_mem_write;
-    wire stall_control_reg_write;
-
-    assign stall_control_mem_write = D_mem_write && ~no_op;
-    assign stall_control_reg_write = D_RegWrite && ~no_op;
 
 
     E_M_reg E_M (
