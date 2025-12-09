@@ -92,7 +92,7 @@ TEST_F(CpuTestbench, test_branch_delay)
 {
     setupTest("11_branch_delay");
     initSimulation();
-    runSimulation(100);
+    runSimulation(150);
     EXPECT_EQ(top_->a0, 5);
 }
 

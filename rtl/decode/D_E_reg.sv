@@ -81,7 +81,7 @@ module D_E_reg #(
         end 
         //only flush if the flush isnt from the instruction currently in E stage
         // this prevented corrupt PC+4 when JAL/Branch executes
-        else if ((CTRL_Flush && !(E_Jump || E_Branch)) || no_op) begin
+        else if (CTRL_Flush|| no_op) begin
             E_RegWrite <= 0;
             E_PCTargetSrc <= 0;
             E_result_src <= 0;

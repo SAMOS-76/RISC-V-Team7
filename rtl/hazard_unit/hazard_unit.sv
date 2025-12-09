@@ -128,19 +128,6 @@ logic branch_mispredict;
 
 always_comb begin : control_hazard
     
-    //this only prcoesses jumps when brnahc is also high - jal and jalr J=1 B=0 !
-    /*if (Branch) begin
-        branch_mispredict = branch_taken;
-        PCSrc = branch_mispredict || Jump; //surely only considered when branch is true? 
-        Flush = branch_mispredict || Jump;
-    end
-
-    else begin
-        Flush             = 0;
-        PCSrc             = 0;
-        branch_mispredict = 0;
-    end*/
-
     if (Branch) begin
         branch_mispredict = branch_taken;
         PCSrc = branch_mispredict;
@@ -150,7 +137,7 @@ always_comb begin : control_hazard
     else if (Jump) begin
         PCSrc = 1'b1;
         Flush = 1'b1;
-        branch_mispredict = 1'b0;
+        branch_mispredict = 1'b1;
     end
     else begin
         Flush = 1'b0;
