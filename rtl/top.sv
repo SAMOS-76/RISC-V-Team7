@@ -9,6 +9,10 @@ module top #(
 
     logic F_PCSrc;
 
+    // Cache stall signal - tie to 0 for now, will be driven by cache controller
+    logic cache_stall;
+    assign cache_stall = 1'b0;
+
     logic [DATA_WIDTH-1:0] F_PCTarget;
     logic [DATA_WIDTH-1:0] F_instr;
     logic [DATA_WIDTH-1:0] F_pc_out;
@@ -96,6 +100,8 @@ module top #(
 
     logic F_D_en;
     logic D_E_en;
+    logic E_M_en;
+    logic M_W_en;
     logic PC_en;
     logic no_op;
 
@@ -256,6 +262,7 @@ module top #(
     E_M_reg E_M (
         .clk(clk),
         .rst(rst),
+        .E_M_en(E_M_en),
         .E_RegWrite(E_RegWrite),
         .E_mem_write(E_mem_write),
         .E_type_control(E_type_control),
@@ -292,6 +299,7 @@ module top #(
     M_W_reg M_W (
         .clk(clk),
         .rst(rst),
+        .M_W_en(M_W_en),
         .M_RegWrite(M_RegWrite),
         .M_result_src(M_result_src),
         .M_alu_result(M_alu_result_out),
@@ -318,10 +326,13 @@ module top #(
 
     hazard_unit h_u(
 
+        .cache_stall(cache_stall),
 
         .PC_en(PC_en),
         .F_D_en(F_D_en),
         .D_E_en(D_E_en),
+        .E_M_en(E_M_en),
+        .M_W_en(M_W_en),
 
 
         .E_opcode(E_opcode),
@@ -336,8 +347,9 @@ module top #(
         .ex_reg_a(E_ra),
         .ex_reg_b(E_rb),
         .ex_reg_d(E_rd),
-                        
-            
+
+
+
         //datamem stage
         .datamem_reg_write_enable(M_RegWrite),
         .datamem_reg_write_addr(M_rd),
@@ -352,8 +364,8 @@ module top #(
         .reg_a(forwarding_sel_a),
         .reg_b(forwarding_sel_b),
         .no_op(no_op),
-    
-        // Control Signals    
+
+        // Control Signals
         .Branch(E_Branch),
         .Jump(E_Jump),
         .branch_taken(branch_taken),

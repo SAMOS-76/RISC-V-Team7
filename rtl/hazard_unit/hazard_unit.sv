@@ -16,9 +16,8 @@ module hazard_unit(
     input   logic   [4:0] ex_reg_d,
 
     input   logic   [6:0] E_opcode,
-    
-    
-    
+
+
     //datamem stage
     input   logic   datamem_reg_write_enable,
     input   logic   [4:0] datamem_reg_write_addr,
@@ -31,6 +30,7 @@ module hazard_unit(
     input   logic   [4:0] wb_reg_write_addr,
     input   logic   [6:0] W_opcode,
 
+    input   logic           cache_stall,
 
     //outputs to mux's controlling inputs in ex stage
     output  forward_type    reg_a,
@@ -39,6 +39,8 @@ module hazard_unit(
     output logic            PC_en,
     output logic            F_D_en,
     output logic            D_E_en,
+    output logic            E_M_en,
+    output logic            M_W_en,
 
     output logic            no_op,
 
@@ -60,6 +62,11 @@ logic d_reg_2_valid;
 
 logic reg_en;
 
+logic E_is_load;
+logic E_is_store;
+logic M_is_load;
+logic M_is_store;
+
 always_comb begin : opcode_check
     d_reg_1_valid = ~(d_opcode == 7'b0010111 | d_opcode == 7'b0110111 | d_opcode == 7'b1101111);
     d_reg_2_valid = ~(d_opcode == 7'b0010111 | d_opcode == 7'b0110111 | d_opcode == 7'b1100111 | d_opcode == 7'b1101111 | d_opcode == 7'b0000011 | d_opcode == 7'b0010011);
@@ -69,32 +76,53 @@ always_comb begin : opcode_check
 
     W_reg_c_valid = ~(W_opcode == 7'b0100011 | W_opcode == 7'b1100011 | ~wb_reg_write_enable);
     M_reg_c_valid = ~(M_opcode == 7'b0100011 | M_opcode == 7'b1100011 | ~datamem_reg_write_enable);
+
+    //detect loads
+    E_is_load = (E_opcode == 7'b0000011);
+    M_is_load = (M_opcode == 7'b0000011);
+
+    //detect stores
+    E_is_store = (E_opcode == 7'b0100011);
+    M_is_store = (M_opcode == 7'b0100011);
 end
 
 
 
 always_comb begin : reg_enables
-    PC_en  = reg_en;
-    F_D_en = reg_en;
-    D_E_en = reg_en;
-    no_op  = ~reg_en;
+    // cache stalls, freeze PC, F_D, and D_E, front of ppl
+    // but allow E_M and M_W to continue if no other hazards
+    if (cache_stall) begin
+        PC_en  = 1'b0;
+        F_D_en = 1'b0;
+        D_E_en = 1'b0;
+        E_M_en = 1'b1;
+        M_W_en = 1'b1;
+        no_op  = 1'b1;
+    end else begin
+        PC_en  = reg_en;
+        F_D_en = reg_en;
+        D_E_en = reg_en;
+        E_M_en = 1'b1;
+        M_W_en = 1'b1;
+        no_op  = ~reg_en;
+    end
 end
 
 
 logic A_L_haz;
 //logic D_A_W_L_haz;
 
-assign A_L_haz = (E_opcode == 7'b0000011 && (((d_reg_a == ex_reg_d) && d_reg_1_valid) || ((d_reg_b == ex_reg_d) && d_reg_2_valid)));
+assign A_L_haz = (E_is_load && (((d_reg_a == ex_reg_d) && d_reg_1_valid) || ((d_reg_b == ex_reg_d) && d_reg_2_valid)));
 
 //| W_opcode == 7'b0000011 && W_reg_c_valid && (((d_reg_a == wb_reg_write_addr) && d_reg_1_valid) || ((d_reg_b == wb_reg_write_addr) && d_reg_2_valid))
 
 //assign D_A_W_L_haz =  W_opcode == 7'b0000011 && W_reg_c_valid && (((d_reg_a == wb_reg_write_addr) && d_reg_1_valid) || ((d_reg_b == wb_reg_write_addr) && d_reg_2_valid));
 
-    
-    
+
+
 //assign reg_en = ~(A_L_haz || D_A_W_L_haz);
 
-assign reg_en = ~(A_L_haz);
+assign reg_en = ~(A_L_haz | cache_stall);
     
 
 
