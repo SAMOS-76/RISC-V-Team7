@@ -7,11 +7,11 @@ module fetch #(
     /* verilator lint_on UNUSED */
     input logic                  PCSrc,
     input logic                  trigger,
-    input logic [DATA_WIDTH-1:0] PC_target,
     input logic                  PC_en,
     input logic                  predict_taken,
-    input logic [31:0]           predict_target,
+    input logic [DATA_WIDTH-1:0] predict_target,
     input logic                  predict_valid,
+    input logic [DATA_WIDTH-1:0] Hazard_target,
 
     output logic [DATA_WIDTH-1:0] Instr,
     output logic [DATA_WIDTH-1:0] pc_out4,
@@ -35,7 +35,7 @@ module fetch #(
 
     always_comb begin
         if (PCSrc)
-            PC_next = PC_target;
+            PC_next = Hazard_target;
         else if (predict_taken && predict_valid)
             PC_next = predict_target;
         else

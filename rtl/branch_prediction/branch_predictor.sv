@@ -29,8 +29,8 @@ module branch_predictor #(
     assign is_jal = E_Jump && (E_opcode == 7'b1101111);
 
     assign update_predictor = branch_resolved_E || is_jal;
-    assign actual_taken = is_jal || branch_taken_E;
-    assign update_btb = update_predictor && actual_taken;
+    assign actual_taken = branch_taken_E || is_jal;
+    assign update_btb = btb_hit;
     
     branch_history_table #(
         .INDEX_BITS(INDEX_BITS)

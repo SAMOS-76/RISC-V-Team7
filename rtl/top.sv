@@ -9,7 +9,7 @@ module top #(
 
     logic PCSrc;
 
-    logic [DATA_WIDTH-1:0] F_PCTarget;
+    logic [DATA_WIDTH-1:0] PCTarget;
     logic [DATA_WIDTH-1:0] F_instr;
     logic [DATA_WIDTH-1:0] F_pc_out;
     logic [DATA_WIDTH-1:0] F_pc_out4;
@@ -116,12 +116,12 @@ module top #(
     logic [DATA_WIDTH-1:0] F_btb_PCtarget;
     logic [DATA_WIDTH-1:0] D_btb_PCtarget;
     logic [DATA_WIDTH-1:0] E_btb_PCtarget;
-
     
     assign F_prediction_made = bp_predict_valid;
     assign F_predicted_taken = bp_predict_taken;
     assign F_btb_PCtarget    = bp_predict_target;
 
+    logic [DATA_WIDTH-1:0] Hazard_target;
 
     // Branch predictor instantiation
     branch_predictor #(
@@ -136,7 +136,7 @@ module top #(
         .branch_resolved_E(E_Branch),
         .PC_E(E_pc_out),
         .branch_taken_E(branch_taken),
-        .branch_target_E(F_PCTarget),
+        .branch_target_E(PCTarget),
         .E_Jump(E_Jump),
         .E_opcode(E_opcode)
     );
@@ -146,14 +146,14 @@ module top #(
         .rst(rst),
         .PCSrc(PCSrc),
         .trigger(trigger),
-        .PC_target(F_PCTarget),
         .Instr(F_instr),
         .pc_out4(F_pc_out4),
         .pc_out(F_pc_out),
         .PC_en(PC_en),
         .predict_taken(bp_predict_taken),
         .predict_target(bp_predict_target),
-        .predict_valid(bp_predict_valid)
+        .predict_valid(bp_predict_valid),
+        .Hazard_target(Hazard_target)
     );
 
     F_D_reg F_D (
@@ -288,7 +288,7 @@ module top #(
         .rs2(E_forwarded_2),
         .imm_ext(E_imm_ext),
         .ALUResult(E_ALUResult),
-        .PCTarget(F_PCTarget)
+        .PCTarget(PCTarget)
     );
 
     E_M_reg E_M (
@@ -389,7 +389,9 @@ module top #(
         .E_predicted_taken(E_predicted_taken),
         .PCSrc(PCSrc),
         .E_btb_PCtarget(E_btb_PCtarget),
-        .PCTarget(F_PCTarget)
+        .PCTarget(PCTarget),
+        .E_pc_out4(E_pc_out4),
+        .Hazard_target(Hazard_target)
     );
 
     // Cycle counter

@@ -41,7 +41,10 @@ module hazard_unit(
     input  logic            E_prediction_made,
     input  logic            E_predicted_taken,
     input  logic   [31:0]   E_btb_PCtarget,
-    input  logic   [31:0]   PCTarget
+    input  logic   [31:0]   PCTarget,
+    input  logic   [31:0]   E_pc_out4,
+
+    output logic   [31:0]   Hazard_target
 );
 
 logic E_reg_1_valid;
@@ -109,6 +112,9 @@ always_comb begin
     end
 end
 
+logic mispred_take;
+logic mispred_not_take;
+
 always_comb begin
     if (Branch) begin
         if (E_prediction_made) begin
@@ -140,8 +146,22 @@ always_comb begin
         branch_mispredict = 1'b0;
     end
 
-    Flush = branch_mispredict || (E_prediction_made && branch_taken && target_mismatch);
-    PCSrc = branch_mispredict || (E_prediction_made && branch_taken && target_mismatch);
+    mispred_take     = Branch && branch_taken && !E_predicted_taken;
+    mispred_not_take = Branch && !branch_taken && E_predicted_taken;
+
+    if (Jump)
+        Hazard_target = PCTarget;
+    else if (mispred_take)
+        Hazard_target = PCTarget;
+    else if (mispred_not_take)
+        Hazard_target = E_pc_out4;
+    else if (Branch && branch_taken)
+        Hazard_target = PCTarget;     
+    else
+        Hazard_target = E_pc_out4;
+
+    PCSrc = Jump || mispred_take || mispred_not_take || (Branch && branch_taken && ~E_prediction_made);
+    Flush = PCSrc;
 end
 
 endmodule
