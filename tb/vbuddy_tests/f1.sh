@@ -11,9 +11,9 @@ ASM_DIR="../asm"
 PROGRAM_HEX_DIR="../"
 
 # assemble
-if [ -f "../assemble.sh" ] && [ -f "$ASM_DIR/f1_complex.s" ]; then
+if [ -f "../assemble.sh" ] && [ -f "$ASM_DIR/f1.s" ]; then
     echo "assembling f1.s..."
-    ../assemble.sh "$ASM_DIR/f1_complex.s"
+    ../assemble.sh "$ASM_DIR/f1.s"
 fi
 
 # link Hex File
