@@ -134,7 +134,7 @@ always_comb begin
     //for a
     //most recent (the one currently in data) is pipelined in
 
-    if((ex_reg_a == datamem_reg_write_addr) && datamem_reg_write_enable && E_reg_1_valid && M_reg_c_valid && (M_opcode != 7'b0000011)) begin
+    if((ex_reg_a == datamem_reg_write_addr) && datamem_reg_write_enable && E_reg_1_valid && M_reg_c_valid) begin
         reg_a = mem;
     end
 
@@ -143,7 +143,7 @@ always_comb begin
     end
 
     //for b
-    if((ex_reg_b == datamem_reg_write_addr) && datamem_reg_write_enable && E_reg_2_valid && M_reg_c_valid && (M_opcode != 7'b0000011)) begin
+    if((ex_reg_b == datamem_reg_write_addr) && datamem_reg_write_enable && E_reg_2_valid && M_reg_c_valid) begin
         reg_b = mem;
     end
 

@@ -80,6 +80,7 @@ module top #(
 
     logic [DATA_WIDTH-1:0] M_mem_read_data;
     logic [DATA_WIDTH-1:0] M_alu_result_out;
+    logic [DATA_WIDTH-1:0] M_result;
 
     logic W_RegWrite;
     logic [1:0] W_result_src;
@@ -226,18 +227,28 @@ module top #(
         .E_opcode(E_opcode)
     );
 
+    // M-stage result mux: select between ALU result and load data
+    always_comb begin
+        case (M_result_src)
+            2'b00: M_result = M_alu_result_out;
+            2'b01: M_result = M_mem_read_data;
+            2'b10: M_result = M_pc_out4;
+            default: M_result = M_alu_result_out;
+        endcase
+    end
+
     always_comb begin
         case (forwarding_sel_a)
             2'b00: E_forwarded_1 = E_r_out1;
-            2'b01: E_forwarded_1 = M_alu_result;
+            2'b01: E_forwarded_1 = M_result;
             2'b10: E_forwarded_1 = W_result;
-            default: E_forwarded_1 = 32'b0;        
+            default: E_forwarded_1 = 32'b0;
         endcase
         case (forwarding_sel_b)
             2'b00: E_forwarded_2 = E_r_out2;
-            2'b01: E_forwarded_2 = M_alu_result;
+            2'b01: E_forwarded_2 = M_result;
             2'b10: E_forwarded_2 = W_result;
-            default: E_forwarded_2 = 32'b0;        
+            default: E_forwarded_2 = 32'b0;
         endcase
     end
 
