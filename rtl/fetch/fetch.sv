@@ -9,6 +9,9 @@ module fetch #(
     input logic                  trigger,
     input logic [DATA_WIDTH-1:0] PC_target,
     input logic                  PC_en,
+    input logic                  predict_taken,
+    input logic [31:0]           predict_target,
+    input logic                  predict_valid,
 
     output logic [DATA_WIDTH-1:0] Instr,
     output logic [DATA_WIDTH-1:0] pc_out4,
@@ -17,21 +20,27 @@ module fetch #(
 
     logic [DATA_WIDTH-1:0] PC_next;
 
-    pc_reg PC_REG( //signal and instance were named PC = VARHIDDEN warn/error, so renamed PC -> PC_REG
+    pc_reg PC_REG(
         .clk(clk),
         .rst(rst),
         .trigger(trigger),
         .PC_en(PC_en),
-
         .pc_next(PC_next),
         .pc_out(pc_out)
     );
 
-    always_comb begin                             // PC +4 adder
+    always_comb begin
         pc_out4 = pc_out + 32'b100;
     end
 
-    assign PC_next = PCSrc ? PC_target : pc_out4; // Branch target or increment PC mux
+    always_comb begin
+        if (PCSrc)
+            PC_next = PC_target;
+        else if (predict_taken && predict_valid)
+            PC_next = predict_target;
+        else
+            PC_next = pc_out4;
+    end
 
     instrMem memROM (
         .addr(pc_out),
