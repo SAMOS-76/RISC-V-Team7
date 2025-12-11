@@ -124,7 +124,7 @@ protected:
 
 TEST_F(CacheTestbench, TestHalfwordSL)
 {
-    setupCacheTest("6_halfword");
+    setupCacheTest("halfword");
     initSimulation();
     runSimulation(CYCLES);
     EXPECT_EQ(top_->a0, 300);
@@ -133,7 +133,7 @@ TEST_F(CacheTestbench, TestHalfwordSL)
 
 TEST_F(CacheTestbench, TestWordSL)
 {
-    setupCacheTest("7_word");
+    setupCacheTest("word");
     initSimulation();
     runSimulation(CYCLES);
     EXPECT_EQ(top_->a0, 300);
@@ -142,7 +142,7 @@ TEST_F(CacheTestbench, TestWordSL)
 
 TEST_F(CacheTestbench, TestByteSL)
 {
-    setupCacheTest("8_byte");
+    setupCacheTest("byte");
     initSimulation();
     runSimulation(CYCLES);
     EXPECT_EQ(top_->a0, 214);
@@ -151,7 +151,7 @@ TEST_F(CacheTestbench, TestByteSL)
 
 TEST_F(CacheTestbench, TestHalfwordComplex)
 {
-    setupCacheTest("9_halfword_complex");
+    setupCacheTest("halfword_complex");
     initSimulation();
     runSimulation(CYCLES);
     EXPECT_EQ(top_->a0, 211525);
@@ -160,7 +160,7 @@ TEST_F(CacheTestbench, TestHalfwordComplex)
 
 TEST_F(CacheTestbench, TestWordComplex)
 {
-    setupCacheTest("10_word_complex");
+    setupCacheTest("word_complex");
     initSimulation();
     runSimulation(CYCLES);
     EXPECT_EQ(top_->a0, 1987458259); //XOR all
@@ -169,7 +169,7 @@ TEST_F(CacheTestbench, TestWordComplex)
 
 TEST_F(CacheTestbench, TestByteComplex)
 {
-    setupCacheTest("11_byte_complex");
+    setupCacheTest("byte_complex");
     initSimulation();
     runSimulation(CYCLES);
     EXPECT_EQ(top_->a0, 1645);
@@ -178,7 +178,7 @@ TEST_F(CacheTestbench, TestByteComplex)
 
 TEST_F(CacheTestbench, TestByteSeq)
 {
-    setupCacheTest("12_byte_seq");
+    setupCacheTest("byte_seq");
     initSimulation();
     runSimulation(CYCLES);
     EXPECT_EQ(top_->a0, 760);
@@ -190,7 +190,7 @@ TEST_F(CacheTestbench, TestByteSeq)
 
 TEST_F(CacheTestbench, TestHitMissRate)
 {
-    setupCacheTest("13_hit_miss_rate");
+    setupCacheTest("hit_miss_rate");
     initSimulation();
     runSimulationWithMetrics(CYCLES);
 
@@ -203,7 +203,7 @@ TEST_F(CacheTestbench, TestHitMissRate)
 
 TEST_F(CacheTestbench, TestAMAT)
 {
-    setupCacheTest("14_amat_test");
+    setupCacheTest("amat_test");
     initSimulation();
     runSimulationWithMetrics(CYCLES);
 
@@ -217,7 +217,7 @@ TEST_F(CacheTestbench, TestAMAT)
 
 TEST_F(CacheTestbench, TestEviction)
 {
-    setupCacheTest("15_eviction_test");
+    setupCacheTest("eviction_test");
     initSimulation();
     runSimulationWithMetrics(CYCLES);
 
@@ -230,7 +230,7 @@ TEST_F(CacheTestbench, TestEviction)
 
 TEST_F(CacheTestbench, TestSimpleHitRate)
 {
-    setupCacheTest("16_simple_hit_rate");
+    setupCacheTest("simple_hit_rate");
     initSimulation();
     runSimulationWithMetrics(CYCLES);
 
