@@ -26,11 +26,14 @@ module branch_predictor #(
     logic actual_taken;
     logic is_jal;
 
-    assign is_jal = E_Jump && (E_opcode == 7'b1101111);
+    always_comb begin : update_signals
+        is_jal           = E_Jump && (E_opcode == 7'b1101111);
 
-    assign update_predictor = branch_resolved_E || is_jal;
-    assign actual_taken = branch_taken_E || is_jal;
-    assign update_btb = btb_hit;
+        update_predictor = branch_resolved_E || is_jal;
+        actual_taken     = branch_taken_E || is_jal;
+        update_btb       = branch_resolved_E && actual_taken;    
+    end
+    
     
     branch_history_table #(
         .INDEX_BITS(INDEX_BITS)
@@ -57,8 +60,11 @@ module branch_predictor #(
         .target_E(branch_target_E)
     );
     
-    assign predict_taken_F = bht_predict_taken && btb_hit;
-    assign predict_target_F = btb_target;
-    assign predict_valid_F = btb_hit;
+    always_comb begin : final_predict_signals
+        predict_taken_F  = bht_predict_taken && btb_hit;
+        predict_target_F = btb_target;
+        predict_valid_F  = btb_hit;    
+    end
+    
 
 endmodule
