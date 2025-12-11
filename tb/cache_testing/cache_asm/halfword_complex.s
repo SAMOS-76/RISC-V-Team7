@@ -1,5 +1,3 @@
-.text
-.globl main
 main:
     li s0, 0x00010000   # Base address for testing
 

@@ -16,6 +16,7 @@ protected:
     unsigned long cache_hits = 0;
     unsigned long cache_misses = 0;
     unsigned long evictions = 0;
+    unsigned long dirty_evictions = 0;
 
     void setupCacheTest(const std::string &name) {
         name_ = name;
@@ -27,6 +28,7 @@ protected:
         cache_hits = 0;
         cache_misses = 0;
         evictions = 0;
+        dirty_evictions = 0;
     }
 
     void initSimulation() {
@@ -49,6 +51,8 @@ protected:
         bool prev_stall = false;
         bool in_memory_stage = false;
         bool program_finished = false;
+        int stall_cycles = 0;
+        bool in_miss = false;
 
         for (int i = 0; i < cycles; i++) {
             // Stop tracking when program completes (a0 != 0)
@@ -60,22 +64,29 @@ protected:
             bool current_stall = top_->rootp->top__DOT__cache_stall;
             bool mem_operation = (top_->rootp->top__DOT__M_mem_write == 1) ||  (top_->rootp->top__DOT__M_result_src == 0b01);
 
-            //count accesses: when we're in M stage with a memory operation (and before program finishes)
-            if (mem_operation && !top_->rootp->rst && !program_finished){
-                //if stalling, it's a miss
-                if (current_stall) {
-                    if (!prev_stall){
-                        cache_misses++;
-                        total_cache_accesses++;
-                    }
-                    //cont. counting stall cycles for AMAT calculation
-                } else {
-                    // not stall = cache hit (1 cycle)
-                    if (!prev_stall) {
-                        cache_hits++;
-                        total_cache_accesses++;
-                    }
+            // Track stall cycles independently of mem_operation
+            if (current_stall && !prev_stall && mem_operation && !top_->rootp->rst && !program_finished) {
+                // Start of a new miss
+                cache_misses++;
+                total_cache_accesses++;
+                stall_cycles = 1;
+                in_miss = true;
+            } else if (current_stall && in_miss) {
+                // Continue counting stall cycles
+                stall_cycles++;
+            } else if (!current_stall && in_miss) {
+                //stall ended - determine if it was dirty (3 cycles) or clean (2 cycles)
+                if (stall_cycles == 3) {
+                    dirty_evictions++;
                 }
+                stall_cycles = 0;
+                in_miss = false;
+            }
+
+            // Count cache hits
+            if (mem_operation && !current_stall && !prev_stall && !top_->rootp->rst && !program_finished) {
+                cache_hits++;
+                total_cache_accesses++;
             }
 
             prev_stall = current_stall;
@@ -95,16 +106,27 @@ protected:
         if (total_cache_accesses > 0) {
             hit_rate = (double)cache_hits / total_cache_accesses * 100.0;
             miss_rate = (double)cache_misses / total_cache_accesses * 100.0;
-            amat = 1.0 + (miss_rate / 100.0) * 2.0; // AMAT = 1 + (MR * 2) - 2 cycle miss penalty
+
+            // AMAT = t_hit + (miss_rate × t_miss)
+            // t_hit = 1 cycle
+            // t_miss = 2 cycles for clean misses, 3 cycles for dirty evictions
+            // Add extra cycle penalty for dirty evictions
+            double dirty_eviction_penalty = (double)dirty_evictions / total_cache_accesses;
+            amat = 1.0 + (miss_rate / 100.0) * 2.0 + dirty_eviction_penalty;
         }
 
         std::cout << "\n=== Cache Performance Metrics ===" << std::endl;
         std::cout << "Total Memory Accesses: " << total_cache_accesses << std::endl;
         std::cout << "Cache Hits:            " << cache_hits << std::endl;
         std::cout << "Cache Misses:          " << cache_misses << std::endl;
-        std::cout << "Hit Rate (HR):         " << hit_rate << "%" << std::endl;
-        std::cout << "Miss Rate (MR):        " << miss_rate << "%" << std::endl;
-        std::cout << "AMAT:                  " << amat << " cycles" << std::endl;
+        std::cout << "Dirty Evictions:       " << dirty_evictions;
+        if (dirty_evictions > 0) {
+            std::cout << " (" << (double)dirty_evictions / cache_misses * 100.0 << "% of misses)";
+        }
+        std::cout << std::endl;
+        std::cout << "Hit Rate (HR):         " << std::fixed << std::setprecision(2) << hit_rate << "%" << std::endl;
+        std::cout << "Miss Rate (MR):        " << std::fixed << std::setprecision(2) << miss_rate << "%" << std::endl;
+        std::cout << "AMAT:                  " << std::fixed << std::setprecision(3) << amat << " cycles" << std::endl;
         std::cout << "================================\n" << std::endl;
     }
 
