@@ -3,7 +3,7 @@ module cache #(
     parameter ADDR_WIDTH = 32,
     parameter DATA_WIDTH = 32,
     parameter LINE_WIDTH = 32,
-    parameter BYTE_BYPASS =1
+    parameter BYTE_BYPASS = 0  //0 = all acess, 1 = bypass byte ops
 )(
     input logic clk,
     input logic rst,

@@ -12,7 +12,7 @@ main:
     lhu t3, 0(s0)
     lhu t4, 2(s0)
 
-    overwrite
+    # overwrite first halfword
     li t5, 0x5678
     sh t5, 0(s0)
     lhu t6, 0(s0)

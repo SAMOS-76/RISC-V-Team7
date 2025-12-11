@@ -42,7 +42,8 @@ make -j -C obj_dir/ -f Vdut.mk
 echo "${GREEN}Running cache tests...${RESET}"
 
 
-./obj_dir/Vdut
+# Pass any command-line arguments to the test executable
+./obj_dir/Vdut "$@"
 
 if [ $? -eq 0 ]; then
     echo "${GREEN}All cache tests passed!${RESET}"

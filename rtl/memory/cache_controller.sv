@@ -139,9 +139,14 @@ module cache_controller #(
 
         case (state)
             IDLE: begin
-                if (is_cacheable_access && !hit && evict_dirty) begin
-                    next_state = WRITEitBack;
-                    stall = 1'b1;
+                if (is_cacheable_access && !hit) begin
+                    if (evict_dirty) begin
+                        next_state = WRITEitBack;
+                        stall = 1'b1;
+                    end else begin
+                        next_state = ALLOCit;
+                        stall = 1'b1;
+                    end
                 end
             end
             WRITEitBack: begin
@@ -151,7 +156,7 @@ module cache_controller #(
 
             ALLOCit:begin
                 next_state = IDLE;
-                stall = 1'b0;
+                stall = 1'b1;
             end
 
             default: next_state = IDLE;
@@ -160,7 +165,7 @@ module cache_controller #(
 
     //miss req reg
     always_ff @(posedge clk) begin
-        if (state == IDLE && next_state == WRITEitBack) begin
+        if (state == IDLE && (next_state == WRITEitBack || next_state == ALLOCit)) begin
             miss_addr <= addr;
             miss_din <= din;
             miss_type_control <= type_control;
@@ -311,19 +316,8 @@ module cache_controller #(
                 L1_write_dirty_way1 = 1'b1;
                 L1_write_lru = 1'b1;
                 L1_lru_value = 1'b0;  //lru is way0
-            end else if (!evict_dirty) begin
-                if (victim_way == 1'b0) begin
-                    L1_write_en_way0 = 1'b1;
-                    L1_write_data_way0 = merged_mem_data;
-                    L1_write_dirty_way0 = 1'b1;
-                end else begin
-                    L1_write_en_way1 = 1'b1;
-                    L1_write_data_way1 = merged_mem_data;
-                    L1_write_dirty_way1 = 1'b1;
-                end
-                L1_write_lru = 1'b1;
-                L1_lru_value = ~victim_way;
             end
+            // Clean miss writes removed - handled in ALLOCit state
         end else if (is_cacheable_access && !current_write_en && state == IDLE) begin
             if (hit_way0) begin
                 L1_write_lru = 1'b1;
@@ -331,19 +325,8 @@ module cache_controller #(
             end else if (hit_way1) begin
                 L1_write_lru = 1'b1;
                 L1_lru_value = 1'b0 ;
-            end else if (!evict_dirty) begin
-                if (victim_way == 1'b0) begin
-                    L1_write_en_way0 = 1'b1;
-                    L1_write_data_way0 = mem_dout;
-                    L1_write_dirty_way0 = 1'b0;
-                end else begin
-                    L1_write_en_way1 = 1'b1;
-                    L1_write_data_way1 = mem_dout;
-                    L1_write_dirty_way1 = 1'b0;
-                end
-                L1_write_lru = 1'b1;
-                L1_lru_value = ~victim_way;
             end
+            // Clean miss writes removed - handled in ALLOCit state
         end else if (is_cacheable_access && state == ALLOCit) begin
             //alloc line aftr wb
             if (victim_way == 1'b0) begin
