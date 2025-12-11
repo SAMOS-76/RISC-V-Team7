@@ -63,9 +63,6 @@ logic d_reg_2_valid;
 logic reg_en;
 
 logic E_is_load;
-logic E_is_store;
-logic M_is_load;
-logic M_is_store;
 
 always_comb begin : opcode_check
     d_reg_1_valid = ~(d_opcode == 7'b0010111 | d_opcode == 7'b0110111 | d_opcode == 7'b1101111);
@@ -77,19 +74,14 @@ always_comb begin : opcode_check
     W_reg_c_valid = ~(W_opcode == 7'b0100011 | W_opcode == 7'b1100011 | ~wb_reg_write_enable);
     M_reg_c_valid = ~(M_opcode == 7'b0100011 | M_opcode == 7'b1100011 | ~datamem_reg_write_enable);
 
-    //detect loads
+    //detect loads for load-use hazard
     E_is_load = (E_opcode == 7'b0000011);
-    M_is_load = (M_opcode == 7'b0000011);
-
-    //detect stores
-    E_is_store = (E_opcode == 7'b0100011);
-    M_is_store = (M_opcode == 7'b0100011);
 end
 
 
 
 always_comb begin : reg_enables
-    // cache stalls, freeze PC, F_D, and D_E, front of ppl
+    // cache stalls, freeze PC, F_D, and D_E, front of pipeline - tried 
     // but allow E_M and M_W to continue if no other hazards
     if (cache_stall) begin
         PC_en  = 1'b0;
@@ -110,17 +102,10 @@ end
 
 
 logic A_L_haz;
-//logic D_A_W_L_haz;
 
 assign A_L_haz = (E_is_load && (((d_reg_a == ex_reg_d) && d_reg_1_valid) || ((d_reg_b == ex_reg_d) && d_reg_2_valid)));
 
-//| W_opcode == 7'b0000011 && W_reg_c_valid && (((d_reg_a == wb_reg_write_addr) && d_reg_1_valid) || ((d_reg_b == wb_reg_write_addr) && d_reg_2_valid))
-
-//assign D_A_W_L_haz =  W_opcode == 7'b0000011 && W_reg_c_valid && (((d_reg_a == wb_reg_write_addr) && d_reg_1_valid) || ((d_reg_b == wb_reg_write_addr) && d_reg_2_valid));
-
-
-
-//assign reg_en = ~(A_L_haz || D_A_W_L_haz);
+//cache controller handles all memory hazards via cache_stall signal:
 
 assign reg_en = ~(A_L_haz | cache_stall);
     

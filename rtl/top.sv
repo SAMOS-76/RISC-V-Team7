@@ -9,10 +9,6 @@ module top #(
 
     logic F_PCSrc;
 
-    // Cache stall signal - tie to 0 for now, will be driven by cache controller
-    logic cache_stall;
-    assign cache_stall = 1'b0;
-
     logic [DATA_WIDTH-1:0] F_PCTarget;
     logic [DATA_WIDTH-1:0] F_instr;
     logic [DATA_WIDTH-1:0] F_pc_out;
@@ -108,6 +104,9 @@ module top #(
 
     logic CTRL_Flush;
     logic branch_taken;
+
+    logic cache_stall;
+    // Connected to memory_stage.cache_stall output
 
     // always_ff @(posedge clk) begin
     //     stateful_F_D_en <= F_D_en;
@@ -298,13 +297,15 @@ module top #(
 
     memory memory_stage (
         .clk(clk),
+        .rst(rst),
         .mem_write(M_mem_write),
         .type_control(M_type_control),
         .sign_ext_flag(M_sign_ext_flag),
         .alu_result(M_alu_result),
         .write_data(M_write_data),
         .alu_result_out(M_alu_result_out),
-        .read_data(M_mem_read_data)
+        .read_data(M_mem_read_data),
+        .cache_stall(cache_stall)
     );
 
     M_W_reg M_W (
