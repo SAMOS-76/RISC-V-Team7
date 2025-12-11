@@ -79,7 +79,7 @@ always_comb begin : reg_enables
         PC_en  = reg_en && !div_stall; 
         F_D_en = reg_en && !div_stall;
         D_E_en = reg_en && !div_stall;
-        no_op  = (~reg_en) || div_stall; 
+        no_op  = (~reg_en);
     end
 
 

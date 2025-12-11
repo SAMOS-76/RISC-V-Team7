@@ -266,8 +266,9 @@ module top #(
     E_M_reg E_M (
         .clk(clk),
         .rst(rst),
-        .E_RegWrite(E_RegWrite),
-        .E_mem_write(E_mem_write),
+        // A bit hacky but just stops any control signals from passion through when div occurs.
+        .E_RegWrite(div_stall_flag ? 1'b0 : E_RegWrite),
+        .E_mem_write(div_stall_flag ? 1'b0 : E_mem_write),
         .E_type_control(E_type_control),
         .E_sign_ext_flag(E_sign_ext_flag),
         .E_result_src(E_result_src),
