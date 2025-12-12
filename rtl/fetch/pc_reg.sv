@@ -12,7 +12,7 @@ module pc_reg #(
 
     logic [DATA_WIDTH-1:0] PC; 
 
-    always_ff @(posedge clk)
+    always_ff @(posedge clk) begin
         if (rst & !trigger) begin
             PC <= 32'b0;
         end
@@ -21,6 +21,8 @@ module pc_reg #(
             PC <= pc_next;
         end
     
+
+    end
     assign pc_out = PC;
     
 endmodule

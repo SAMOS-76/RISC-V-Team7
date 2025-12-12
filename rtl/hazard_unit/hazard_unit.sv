@@ -6,7 +6,6 @@ typedef enum logic [1:0]{
 
 
 module hazard_unit(
-    input logic         clk,
 
     input  logic    [4:0] d_reg_a,
     input  logic    [4:0] d_reg_b,
@@ -41,62 +40,69 @@ module hazard_unit(
     output logic            F_D_en,
     output logic            D_E_en,
 
-    output logic            no_op
+    output logic            no_op,
 
+    // Control Signals
+    input  logic            Branch,
+    input  logic            branch_taken,
+    input  logic            Jump,
 
-
+    output logic            PCSrc,
+    output logic            Flush
 );
 
-    logic E_reg_1_valid;
-    logic E_reg_2_valid;
-    logic M_reg_c_valid;
-    logic W_reg_c_valid;
-    logic d_reg_1_valid;
-    logic d_reg_2_valid;
+logic E_reg_1_valid;
+logic E_reg_2_valid;
+logic M_reg_c_valid;
+logic W_reg_c_valid;
+logic d_reg_1_valid;
+logic d_reg_2_valid;
 
-    logic reg_en;
+logic reg_en;
 
+always_comb begin : opcode_check
+    d_reg_1_valid = ~(d_opcode == 7'b0010111 | d_opcode == 7'b0110111 | d_opcode == 7'b1101111);
+    d_reg_2_valid = ~(d_opcode == 7'b0010111 | d_opcode == 7'b0110111 | d_opcode == 7'b1100111 | d_opcode == 7'b1101111 | d_opcode == 7'b0000011 | d_opcode == 7'b0010011);
 
-assign d_reg_1_valid = ~(d_opcode == 7'b0010111 | d_opcode == 7'b0110111 | d_opcode == 7'b1101111);
-assign d_reg_2_valid = ~(d_opcode == 7'b0010111 | d_opcode == 7'b0110111 | d_opcode == 7'b1100111 | d_opcode == 7'b1101111 | d_opcode == 7'b0000011 | d_opcode == 7'b0010011);
+    E_reg_1_valid = ~(E_opcode == 7'b0010111 | E_opcode == 7'b0110111 | E_opcode == 7'b1101111 | E_opcode == 7'b0000000);
+    E_reg_2_valid = ~(E_opcode == 7'b0010111 | E_opcode == 7'b0110111 | E_opcode == 7'b1100111 | E_opcode == 7'b1101111 | E_opcode == 7'b0000011 | E_opcode == 7'b0010011 | E_opcode == 7'b0000000);
 
-assign E_reg_1_valid = ~(E_opcode == 7'b0010111 | E_opcode == 7'b0110111 | E_opcode == 7'b1101111);
-assign E_reg_2_valid = ~(E_opcode == 7'b0010111 | E_opcode == 7'b0110111 | E_opcode == 7'b1100111 | E_opcode == 7'b1101111 | E_opcode == 7'b0000011 | E_opcode == 7'b0010011);
-
-
-assign W_reg_c_valid = ~(W_opcode == 7'b0100011 | W_opcode == 7'b1100011);
-assign M_reg_c_valid = ~(M_opcode == 7'b0100011 | M_opcode == 7'b1100011);
-
-
-assign PC_en = reg_en;
-assign F_D_en = reg_en;
-assign D_E_en = reg_en;
-assign no_op = ~reg_en;
-
-
-
-
-
-
-always_ff @(negedge clk) begin
-reg_en <= ~(E_opcode == 7'b0000011 && (((d_reg_a == ex_reg_d) && d_reg_1_valid) || ((d_reg_b == ex_reg_d) && d_reg_2_valid)) && ~no_op);
+    W_reg_c_valid = ~(W_opcode == 7'b0100011 | W_opcode == 7'b1100011 | ~wb_reg_write_enable);
+    M_reg_c_valid = ~(M_opcode == 7'b0100011 | M_opcode == 7'b1100011 | ~datamem_reg_write_enable);
 end
+
+
+
+always_comb begin : reg_enables
+    PC_en  = reg_en;
+    F_D_en = reg_en;
+    D_E_en = reg_en;
+    no_op  = ~reg_en;
+end
+
+
+logic A_L_haz;
+//logic D_A_W_L_haz;
+
+assign A_L_haz = (E_opcode == 7'b0000011 && (((d_reg_a == ex_reg_d) && d_reg_1_valid) || ((d_reg_b == ex_reg_d) && d_reg_2_valid)));
+
+//| W_opcode == 7'b0000011 && W_reg_c_valid && (((d_reg_a == wb_reg_write_addr) && d_reg_1_valid) || ((d_reg_b == wb_reg_write_addr) && d_reg_2_valid))
+
+//assign D_A_W_L_haz =  W_opcode == 7'b0000011 && W_reg_c_valid && (((d_reg_a == wb_reg_write_addr) && d_reg_1_valid) || ((d_reg_b == wb_reg_write_addr) && d_reg_2_valid));
+
+    
+    
+//assign reg_en = ~(A_L_haz || D_A_W_L_haz);
+
+assign reg_en = ~(A_L_haz);
+    
 
 
 always_comb begin
 
-
-
-
-
-
     reg_a = none;
     reg_b = none;
-
     
-
-
-
     //for a
     //most recent (the one currently in data) is pipelined in
 
@@ -109,9 +115,6 @@ always_comb begin
     end
 
     //for b
-
-
-
     if((ex_reg_b == datamem_reg_write_addr) && datamem_reg_write_enable && E_reg_2_valid && M_reg_c_valid && (M_opcode != 7'b0000011)) begin
         reg_b = mem;
     end
@@ -121,7 +124,27 @@ always_comb begin
     end
 end
 
+logic branch_mispredict;
 
+always_comb begin : control_hazard
+    
+    if (Branch) begin
+        branch_mispredict = branch_taken;
+        PCSrc = branch_mispredict;
+        Flush = branch_mispredict;
+    end
 
+    else if (Jump) begin
+        PCSrc = 1'b1;
+        Flush = 1'b1;
+        branch_mispredict = 1'b1;
+    end
+    else begin
+        Flush = 1'b0;
+        PCSrc = 1'b0;
+        branch_mispredict = 1'b0;
+    end
+    
+end
 
 endmodule

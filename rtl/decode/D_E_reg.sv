@@ -3,6 +3,10 @@ module D_E_reg #(
 ) (
     input  logic clk,
     input  logic rst,
+    input  logic no_op,
+
+    input  logic CTRL_Flush,
+    
     input  logic D_E_en,
     input  logic D_RegWrite,
     input  logic D_PCTargetSrc,
@@ -49,8 +53,9 @@ module D_E_reg #(
 
     output logic [4:0] E_ra,
     output logic [4:0] E_rb
+
 );
-    always_ff @(negedge clk) begin  //negaedge so register file can be written nd then read with new value - makes the execute sort of 'directly'/'combinatoraly' connected to the regfile as no updates are lost
+    always_ff @(posedge clk) begin  //negaedge so register file can be written nd then read with new value - makes the execute sort of 'directly'/'combinatoraly' connected to the regfile as no updates are lost
         if (rst) begin
             E_RegWrite <= 0;
             E_PCTargetSrc <= 0;
@@ -74,6 +79,31 @@ module D_E_reg #(
             E_rb <= 0;
             E_opcode <= 0;
         end 
+        //only flush if the flush isnt from the instruction currently in E stage
+        // this prevented corrupt PC+4 when JAL/Branch executes
+        else if (CTRL_Flush|| no_op) begin
+            E_RegWrite <= 0;
+            E_PCTargetSrc <= 0;
+            E_result_src <= 0;
+            E_mem_write <= 0;
+            E_alu_control <= 0;
+            E_alu_srcA <= 0;
+            E_alu_srcB <= 0;
+            E_sign_ext_flag <= 0;
+            E_Branch <= 0;
+            E_Jump <= 0;
+            E_branchType <= 0;
+            E_pc_out <= 0;
+            E_pc_out4 <= 0;
+            E_imm_ext <= 0;
+            E_r_out1 <= 0;
+            E_r_out2 <= 0;
+            E_type_control <= 0;
+            E_rd <= 0;
+            E_ra <= 0;
+            E_rb <= 0;
+            E_opcode <= 0;
+        end
         else if (D_E_en)
         begin
             E_RegWrite <= D_RegWrite;

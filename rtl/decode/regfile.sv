@@ -18,10 +18,13 @@ module regfile(
 
 logic [31:0] register [31:0];
 
-always_ff @(posedge clk) begin
+always_ff @(negedge clk) begin
 
     if(rst) begin
-        register[0] <= 32'b0;
+        // Reset all registers to 0 as was testing reg undefined behave
+        for (int i = 0; i < 32; i++) begin
+            register[i] <= 32'b0;
+        end
     end
 
     // this was overwriting x0 if a3 ==0 !! Must be hardwired to 0.
@@ -38,6 +41,9 @@ end
 // eg add RAW hazard detection - bypassing 
 // likely need updating to avoid pipe hazards eventually
 //overide x0 READS -HARD
+
+
+
 assign rout1 = (a1 == 5'b0) ? 32'b0 : register[a1];
 assign rout2 = (a2 == 5'b0) ? 32'b0 : register[a2];
 

@@ -3,8 +3,6 @@
 
 module control_unit (
     input  logic [31:0] instr,
-    input  logic        alu_zero,     // ALU signal for if the result is 0
-    input  logic        alu_result_0, // LSB of ALU result
     
     output logic [3:0]  ALUControl,
     output logic        ALUSrcB,
