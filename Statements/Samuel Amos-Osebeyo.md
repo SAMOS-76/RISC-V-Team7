@@ -176,6 +176,8 @@ Successfully demonstrated F1 operation with:
 My main goal with the Pipelined CPU was to further it's capabilities from a standard R32VI cpu to a R32VIM implementing additional single-cycle multiplication and multi-cycle division functionality. Additionally enhance hazard unit to encompass div stalls.
 
 # Pipelined CPU Implementation with RV32IM Extension
+<img width="1423" height="761" alt="image" src="https://github.com/user-attachments/assets/45f92ae0-db66-427a-8454-c20a4d85e9a5" />
+
 
 [ALU Module](https://github.com/SAMOS-76/RISC-V-Team7/blob/Pipeline-MUL-final/rtl/execute/alu.sv) | [Hazard Unit](https://github.com/SAMOS-76/RISC-V-Team7/blob/Pipeline-MUL-final/rtl/hazard_unit/hazard_unit.sv) | [Division Module](https://github.com/SAMOS-76/RISC-V-Team7/blob/Pipeline-MUL-final/rtl/hazard_unit/hazard_unit.sv) | [Branch:  Pipeline-MUL-final](https://github.com/SAMOS-76/RISC-V-Team7/tree/Pipeline-MUL-final)
 
@@ -359,7 +361,9 @@ end
 ```
 
 ### Hazard Unit Integration for Division Stalls
-To correctly implement my division module, the CPU must be stalled for the entire duration of the DIV instruction. To achieve this, I use the is_div flag and the is_finished(div_done) flag to tell the hazard unit that it needs to stall the CPU.
+<img width="553" height="623" alt="image" src="https://github.com/user-attachments/assets/537d2c7a-9c1e-44b4-874c-fba26e0ad2e5" />
+
+To correctly implement my division module, the CPU must be stalled for the entire duration of the DIV instruction. To achieve this, I use the is_div flag and the is_finished(div_done) flag inside of the execute module to tell the hazard unit that it needs to stall the CPU.
 
 ```systemverilog
 assign div_stall_flag = (is_div) && !div_done;
