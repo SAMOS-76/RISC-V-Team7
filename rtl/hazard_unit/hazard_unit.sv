@@ -31,6 +31,8 @@ module hazard_unit(
     input   logic   [4:0] wb_reg_write_addr,
     input   logic   [6:0] W_opcode,
 
+    //trigger stall
+    input   logic           trigger,
 
     //outputs to mux's controlling inputs in ex stage
     output  forward_type    reg_a,
@@ -74,10 +76,20 @@ end
 
 
 always_comb begin : reg_enables
-    PC_en  = reg_en;
-    F_D_en = reg_en;
-    D_E_en = reg_en;
-    no_op  = ~reg_en;
+    // Button released (trigger=1) = RUN pipeline
+    if (trigger) begin
+        // Run: normal operation
+        PC_en  = reg_en;
+        F_D_en = reg_en;
+        D_E_en = reg_en;
+        no_op  = ~reg_en;
+    end else begin
+        // Stall: freeze all pipeline registers
+        PC_en  = 1'b0;
+        F_D_en = 1'b0;
+        D_E_en = 1'b0;
+        no_op  = 1'b1;
+    end
 end
 
 

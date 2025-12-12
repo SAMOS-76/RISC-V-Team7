@@ -348,12 +348,14 @@ module top #(
         .wb_reg_write_enable(W_RegWrite),
         .wb_reg_write_addr(W_rd),
 
+        .trigger(trigger),
+
         //outputs to mux's controlling inputs in ex stage
         .reg_a(forwarding_sel_a),
         .reg_b(forwarding_sel_b),
         .no_op(no_op),
-    
-        // Control Signals    
+
+        // Control Signals
         .Branch(E_Branch),
         .Jump(E_Jump),
         .branch_taken(branch_taken),
