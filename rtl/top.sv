@@ -36,6 +36,7 @@ module top #(
     logic [4:0] D_rs1;
     logic [4:0] D_rs2;
     logic [4:0] D_rd;
+    logic D_is_div;
 
     logic E_PCTargetSrc;
     logic E_RegWrite;
@@ -60,6 +61,7 @@ module top #(
     logic [4:0] E_rd;
     logic [4:0] E_ra;
     logic [4:0] E_rb;
+    logic E_is_div;
 
     logic [DATA_WIDTH-1:0] E_ALUResult;
 
@@ -100,6 +102,8 @@ module top #(
 
     logic CTRL_Flush;
     logic branch_taken;
+
+    logic div_stall_flag;
 
     // Branch prediction signals
     logic bp_predict_taken;
@@ -202,6 +206,7 @@ module top #(
         .rd(D_rd),
         .a0(a0),
         .opcode(D_opcode)
+        .is_div(D_is_div)
     );
 
     D_E_reg D_E (
@@ -233,6 +238,7 @@ module top #(
         .D_opcode(D_opcode),
         .D_prediction_made(D_prediction_made),
         .D_predicted_taken(D_predicted_taken),
+        .D_is_div(D_is_div),
         .E_RegWrite(E_RegWrite),
         .E_PCTargetSrc(E_PCTargetSrc),
         .E_result_src(E_result_src),
@@ -254,6 +260,7 @@ module top #(
         .E_ra(E_ra),
         .E_rb(E_rb),
         .E_opcode(E_opcode),
+        .E_is_div(E_is_div),
         .E_prediction_made(E_prediction_made),
         .E_predicted_taken(E_predicted_taken),
         .D_btb_PCtarget(D_btb_PCtarget),
@@ -276,6 +283,8 @@ module top #(
     end
 
     execute execute_stage (
+        .clk(clk),
+        .is_div(E_is_div),
         .alu_control(E_alu_control),
         .ALUSrcA(E_alu_srcA),
         .ALUSrcB(E_alu_srcB),
@@ -288,14 +297,16 @@ module top #(
         .rs2(E_forwarded_2),
         .imm_ext(E_imm_ext),
         .ALUResult(E_ALUResult),
-        .PCTarget(PCTarget)
+        .PCTarget(PCTarget),
+        .div_stall_flag(div_stall_flag)
     );
 
     E_M_reg E_M (
         .clk(clk),
         .rst(rst),
-        .E_RegWrite(E_RegWrite),
-        .E_mem_write(E_mem_write),
+        // A bit hacky but just stops any control signals from passion through when div occurs.
+        .E_RegWrite(div_stall_flag ? 1'b0 : E_RegWrite),
+        .E_mem_write(div_stall_flag ? 1'b0 : E_mem_write),
         .E_type_control(E_type_control),
         .E_sign_ext_flag(E_sign_ext_flag),
         .E_result_src(E_result_src),
@@ -392,6 +403,7 @@ module top #(
         .PCTarget(PCTarget),
         .E_pc_out4(E_pc_out4),
         .Hazard_target(Hazard_target)
+        .div_stall(div_stall_flag)
     );
 
     // Cycle counter

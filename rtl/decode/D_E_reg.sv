@@ -27,6 +27,7 @@ module D_E_reg #(
     input  logic [1:0] D_type_control,
     input  logic [6:0] D_opcode,
     input  logic [4:0] D_rd,
+    input  logic D_is_div,
 
     input  logic [4:0] D_ra,
     input  logic [4:0] D_rb,
@@ -50,6 +51,7 @@ module D_E_reg #(
     output logic [1:0] E_type_control,
     output logic [6:0] E_opcode,
     output logic [4:0] E_rd,
+    output logic E_is_div,
 
     output logic [4:0] E_ra,
     output logic [4:0] E_rb,
@@ -88,6 +90,7 @@ module D_E_reg #(
             E_predicted_taken <= 0;
             E_prediction_made <= 0;
             E_btb_PCtarget <= 0;
+            E_is_div <= 0;
         end 
         //only flush if the flush isnt from the instruction currently in E stage
         // this prevented corrupt PC+4 when JAL/Branch executes
@@ -143,6 +146,7 @@ module D_E_reg #(
             E_predicted_taken <= D_predicted_taken;
             E_prediction_made <= D_prediction_made;
             E_btb_PCtarget <= D_btb_PCtarget;
+            E_is_div <= D_is_div;
         end
     end
 endmodule
