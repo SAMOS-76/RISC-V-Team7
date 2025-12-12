@@ -2,6 +2,7 @@
 
 ## Introduction
 We developed four distinct CPUs: a single-cycle processor, pipelined RV32IM, pipelined with cache, pipelined with branch prediction and a pipelined CPU that combines all cache multiply & branch prediction capabilities.
+
 ## Quick Access
 - **`main` branch**: Final Pipelined CPU with multiply, data cache and branch prediction capabilites combined.
 - **`SingleCycle` branch**: Verified single-cycle CPU
@@ -10,19 +11,23 @@ We developed four distinct CPUs: a single-cycle processor, pipelined RV32IM, pip
 - **`Branch Prediction` branch**: Pipelined with branch prediction
 
 ## Project Progression
-<center>
-<img width="1348" height="348" alt="image" src="https://github.com/user-attachments/assets/03a4a94f-fa6a-4048-80e9-199f22cce99d" />
-</center>
+
+<p align="center">
+  <img width="1348" height="348" alt="image" src="https://github.com/user-attachments/assets/03a4a94f-fa6a-4048-80e9-199f22cce99d" />
+</p>
 
 ## The Team
-<center>
+
+<div align="center">
+
 | Name | Personal Statement |
 |------|-------------------|
 | Samuel Amos-Osebeyo | [Statement](./personal%20statements/) |
 | Louis Canning | [Statement](./personal%20statements/) |
 | Archie Kendall | [Statement](./personal%20statements/) |
 | Adil Shah | [Statement](./personal%20statements/) |
-</center>
+
+</div>
 
 ### Project Structure
 ```
@@ -85,7 +90,9 @@ We developed four distinct CPUs: a single-cycle processor, pipelined RV32IM, pip
 ## Running the Project
 
 All commands should be executed from the `/tb` directory:
-<center>
+
+<div align="center">
+
 | Command | Purpose |
 |---------|---------|
 | `./doit.sh` | Execute standard test suite |
@@ -93,7 +100,9 @@ All commands should be executed from the `/tb` directory:
 | `./custom_doit.sh` | Run our directory of our own tests |
 | `./pdf.sh [distribution name]` | Run PDF distribution visualization |
 | `./f1.sh` | Run F1 starting lights simulation |
-</center>
+
+</div>
+
 ---
 
 ## Single Cycle Implementation
@@ -102,7 +111,9 @@ All commands should be executed from the `/tb` directory:
 Our single-cycle CPU implements the complete RV32I instruction set, enabling single-cycle execution of arithmetic, logical, memory, and control flow operations.
 
 ### Module Contributions
-<center>
+
+<div align="center">
+
 | Component | Samuel | Louis | Archie | Adil |
 |-----------|--------|-------|--------|------|
 | Program Counter | x | | | |
@@ -118,11 +129,15 @@ Our single-cycle CPU implements the complete RV32I instruction set, enabling sin
 | Integration Testing | | x | x | |
 | F1 Program | x | | | |
 | Vbuddy integration | x | | | |
-</center>
+
+</div>
+
 ### Testing & Verification
-<center>
-<img width="414" height="308" alt="Single cycle test results" src="https://github.com/user-attachments/assets/ae19b3ca-cd87-465d-a798-5379ba36bf8f" />
-</center>
+
+<p align="center">
+  <img width="414" height="308" alt="Single cycle test results" src="https://github.com/user-attachments/assets/ae19b3ca-cd87-465d-a798-5379ba36bf8f" />
+</p>
+
 ### Integration onto VBuddy
 
 
@@ -175,9 +190,10 @@ Our pipelined processor achieves higher throughput through instruction-level par
 ### Testing & Validation
 
 We developed custom testing scripts to test our specialised assembly files to ensure the design behaved as desired.
-<center>
-<img width="853" height="595" alt="image" src="https://github.com/user-attachments/assets/d9592c7a-84ae-434f-8503-0933824459d1" />
-</center>
+
+<p align="center">
+  <img width="853" height="595" alt="image" src="https://github.com/user-attachments/assets/d9592c7a-84ae-434f-8503-0933824459d1" />
+</p>
 
 ---
 
@@ -192,7 +208,9 @@ These were all done on a fully pipelined cpu and all worked correctly
 - Cache
 
 ### Extention Contributions
-<center>
+
+<div align="center">
+
 | Component | Samuel | Louis | Archie | Adil |
 |-----------|--------|-------|--------|------|
 | Pipelining | x | x | x | x |
@@ -203,7 +221,9 @@ These were all done on a fully pipelined cpu and all worked correctly
 | Pipeline debug | | x | | x |
 | RV32IM extension | x | | | |
 | Cache | | | x | |
-</center>
+
+</div>
+
 ### Key Integration Challenges
 
 #### blah blah
@@ -223,7 +243,3 @@ These were all done on a fully pipelined cpu and all worked correctly
 
 ### References
 - Harris & Harris: *Digital Design and Computer Architecture: RISC-V Edition*
-
-
-
-
