@@ -133,10 +133,8 @@ if (!plot_trigger && top->a0 != idle_a0) {
 ![alt text](<Screenshot 2025-12-12 152723.jpg>)
 *example: vbuddy displaying pdf plot due to testbenching*
 
-I also allowed the rotary encode push button to hook up to our CPU's trigger and pass through to hazard unit to pause the pipeline. 
-Of course using ```top->trigger``` and some improved testbenching to detect the button switch. 
 
-As stages were built up, I continued to test and integrate the main CPU to ensure we could pass all the tests required in the brief, previous tests had to be revised as our CPU became more complex ythrough Pipelining. 
+As stages were built up, I continued to test and integrate the main CPU to ensure we could pass all the tests required in the brief, previous tests had to be revised as our CPU became more complex through Pipelining, again working closely with Sam on this.
 
 
 
