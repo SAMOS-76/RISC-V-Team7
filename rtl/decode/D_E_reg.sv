@@ -27,6 +27,7 @@ module D_E_reg #(
     input  logic [1:0] D_type_control,
     input  logic [6:0] D_opcode,
     input  logic [4:0] D_rd,
+    input  logic D_is_div,
 
     input  logic [4:0] D_ra,
     input  logic [4:0] D_rb,
@@ -50,12 +51,20 @@ module D_E_reg #(
     output logic [1:0] E_type_control,
     output logic [6:0] E_opcode,
     output logic [4:0] E_rd,
+    output logic E_is_div,
 
     output logic [4:0] E_ra,
-    output logic [4:0] E_rb
+    output logic [4:0] E_rb,
+    
+    input  logic                  D_prediction_made,
+    input  logic                  D_predicted_taken,
+    input  logic [DATA_WIDTH-1:0] D_btb_PCtarget,
+    output logic                  E_prediction_made,
+    output logic                  E_predicted_taken,
+    output logic [DATA_WIDTH-1:0] E_btb_PCtarget
 
 );
-    always_ff @(posedge clk) begin  //negaedge so register file can be written nd then read with new value - makes the execute sort of 'directly'/'combinatoraly' connected to the regfile as no updates are lost
+    always_ff @(posedge clk) begin
         if (rst) begin
             E_RegWrite <= 0;
             E_PCTargetSrc <= 0;
@@ -78,10 +87,14 @@ module D_E_reg #(
             E_ra <= 0;
             E_rb <= 0;
             E_opcode <= 0;
+            E_predicted_taken <= 0;
+            E_prediction_made <= 0;
+            E_btb_PCtarget <= 0;
+            E_is_div <= 0;
         end 
         //only flush if the flush isnt from the instruction currently in E stage
         // this prevented corrupt PC+4 when JAL/Branch executes
-        else if (CTRL_Flush|| no_op) begin
+        else if (CTRL_Flush || no_op) begin
             E_RegWrite <= 0;
             E_PCTargetSrc <= 0;
             E_result_src <= 0;
@@ -103,6 +116,10 @@ module D_E_reg #(
             E_ra <= 0;
             E_rb <= 0;
             E_opcode <= 0;
+            E_predicted_taken <= 0;
+            E_prediction_made <= 0;
+            E_btb_PCtarget <= 0;
+            E_is_div <= 0;
         end
         else if (D_E_en)
         begin
@@ -127,6 +144,10 @@ module D_E_reg #(
             E_ra <= D_ra;
             E_rb <= D_rb;
             E_opcode <= D_opcode;
+            E_predicted_taken <= D_predicted_taken;
+            E_prediction_made <= D_prediction_made;
+            E_btb_PCtarget <= D_btb_PCtarget;
+            E_is_div <= D_is_div;
         end
     end
 endmodule

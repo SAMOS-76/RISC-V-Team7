@@ -21,13 +21,13 @@ module branch_comparator (
 
         if (Branch) begin
             case (branchType)
-                BEQ:  branch_taken = zero;           
-                BNE:  branch_taken = ~zero;          
-                BLT:  branch_taken = alu_result_0;   
-                BGE:  branch_taken = ~alu_result_0;  
-                BLTU: branch_taken = alu_result_0;   
-                BGEU: branch_taken = ~alu_result_0;
-                default: branch_taken = 1'b0; //guarantee logic
+                BEQ:  branch_taken = zero;           // SUB result is 0
+                BNE:  branch_taken = ~zero;          // SUB result is not 0
+                BLT:  branch_taken = ~zero;          // SLT result is 1 (not 0) 
+                BGE:  branch_taken = zero;           // SLT result is 0
+                BLTU: branch_taken = ~zero;          // SLTU result is 1 (not 0)
+                BGEU: branch_taken = zero;           // SLTU result is 0
+                default: branch_taken = 1'b0;
             endcase
         end
     end

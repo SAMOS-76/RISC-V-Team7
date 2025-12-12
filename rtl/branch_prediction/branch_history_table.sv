@@ -1,17 +1,17 @@
 module branch_history_table #(
-    parameter INDEX_BITS = 4  // 16 entries
+    parameter INDEX_BITS = 4  
 )(
     input  logic        clk,
     input  logic        rst,
     
-    // Fetch stage - Predict
+    // Fetch signals
     input  logic [31:0] PC_F,
     output logic        predict_taken_F,
     
-    // Exectue stage - Check/Verify completion
-    input  logic        update_en,      // Branch resolved
-    input  logic [31:0] PC_E,           // Which branch
-    input  logic        branch_taken_E  // Actual outcome
+    // Exectue signals
+    input  logic        update_en,      
+    input  logic [31:0] PC_E,           
+    input  logic        branch_taken_E  
 );
 
     // State encoding
@@ -32,16 +32,15 @@ module branch_history_table #(
        index_F = PC_F[INDEX_BITS+1:2]; // No lsb because of +4
        index_E = PC_E[INDEX_BITS+1:2]; 
 
-       // Prediction: MSB indicates taken(1) or not-taken(0)
        predict_taken_F = bht[index_F][1];
     end
     
-    always_ff @(posedge clk or negedge rst) begin
+    always_ff @(posedge clk) begin
 
-        if (!rst) begin
+        if (rst) begin
             // Initialize to WNT
             for (int i = 0; i < 2**INDEX_BITS; i++) begin
-                bht[i] <= WNT;
+                bht[i] = WNT;
             end
         end
 
@@ -57,3 +56,5 @@ module branch_history_table #(
     end
 
 endmodule
+
+

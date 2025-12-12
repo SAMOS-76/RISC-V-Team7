@@ -3,6 +3,7 @@ module E_M_reg #(
 ) (
     input  logic clk,
     input  logic rst,
+    input  logic E_M_en,
     input  logic E_RegWrite,
     input  logic E_mem_write,
     input  logic [1:0] E_type_control,
@@ -37,8 +38,8 @@ module E_M_reg #(
             M_pc_out4 <= 0;
             M_rd <= 0;
             M_opcode <= 0;
-        end 
-        else 
+        end
+        else if (E_M_en)
         begin
             M_RegWrite <= E_RegWrite;
             M_mem_write <= E_mem_write;

@@ -7,9 +7,9 @@ module top #(
     output  logic [DATA_WIDTH-1:0] a0
 );
 
-    logic F_PCSrc;
+    logic PCSrc;
 
-    logic [DATA_WIDTH-1:0] F_PCTarget;
+    logic [DATA_WIDTH-1:0] PCTarget;
     logic [DATA_WIDTH-1:0] F_instr;
     logic [DATA_WIDTH-1:0] F_pc_out;
     logic [DATA_WIDTH-1:0] F_pc_out4;
@@ -17,7 +17,6 @@ module top #(
     logic [DATA_WIDTH-1:0] D_instr;
     logic [DATA_WIDTH-1:0] D_pc_out;
     logic [DATA_WIDTH-1:0] D_pc_out4;
-
 
     logic D_PCTargetSrc;
     logic D_RegWrite;
@@ -37,6 +36,7 @@ module top #(
     logic [4:0] D_rs1;
     logic [4:0] D_rs2;
     logic [4:0] D_rd;
+    logic D_is_div;
 
     logic E_PCTargetSrc;
     logic E_RegWrite;
@@ -61,6 +61,7 @@ module top #(
     logic [4:0] E_rd;
     logic [4:0] E_ra;
     logic [4:0] E_rb;
+    logic E_is_div;
 
     logic [DATA_WIDTH-1:0] E_ALUResult;
 
@@ -76,6 +77,7 @@ module top #(
 
     logic [DATA_WIDTH-1:0] M_mem_read_data;
     logic [DATA_WIDTH-1:0] M_alu_result_out;
+    logic cache_stall;
 
     logic W_RegWrite;
     logic [1:0] W_result_src;
@@ -96,32 +98,74 @@ module top #(
 
     logic F_D_en;
     logic D_E_en;
+    logic E_M_en;
+    logic M_W_en;
     logic PC_en;
     logic no_op;
 
     logic CTRL_Flush;
     logic branch_taken;
 
-    // always_ff @(posedge clk) begin
-    //     stateful_F_D_en <= F_D_en;
-    //     stateful_PC_en  <= PC_en;
-    // end
+    logic div_stall_flag;
+
+    // Branch prediction signals
+    logic bp_predict_taken;
+    logic [DATA_WIDTH-1:0] bp_predict_target;
+    logic bp_predict_valid;
+
+    logic F_prediction_made;
+    logic F_predicted_taken;
+    logic D_prediction_made;
+    logic D_predicted_taken;
+    logic E_prediction_made;
+    logic E_predicted_taken;
+
+    logic [DATA_WIDTH-1:0] F_btb_PCtarget;
+    logic [DATA_WIDTH-1:0] D_btb_PCtarget;
+    logic [DATA_WIDTH-1:0] E_btb_PCtarget;
+    
+    assign F_prediction_made = bp_predict_valid;
+    assign F_predicted_taken = bp_predict_taken;
+    assign F_btb_PCtarget    = bp_predict_target;
+
+    logic [DATA_WIDTH-1:0] Hazard_target;
+
+    // Branch predictor instantiation
+    branch_predictor #(
+        .INDEX_BITS(8)
+    ) bp (
+        .clk(clk),
+        .rst(rst),
+        .PC_F(F_pc_out),
+        .predict_taken_F(bp_predict_taken),
+        .predict_target_F(bp_predict_target),
+        .predict_valid_F(bp_predict_valid),
+        .branch_resolved_E(E_Branch),
+        .PC_E(E_pc_out),
+        .branch_taken_E(branch_taken),
+        .branch_target_E(PCTarget),
+        .E_Jump(E_Jump),
+        .E_opcode(E_opcode)
+    );
 
     fetch fetch_stage (
         .clk(clk),
         .rst(rst),
-        .PCSrc(F_PCSrc),
+        .PCSrc(PCSrc),
         .trigger(trigger),
-        .PC_target(F_PCTarget),
         .Instr(F_instr),
         .pc_out4(F_pc_out4),
         .pc_out(F_pc_out),
-        .PC_en(PC_en)
+        .PC_en(PC_en),
+        .predict_taken(bp_predict_taken),
+        .predict_target(bp_predict_target),
+        .predict_valid(bp_predict_valid),
+        .Hazard_target(Hazard_target)
     );
 
     F_D_reg F_D (
         .clk(clk),
-        .rst(rst), //issue is here
+        .rst(rst),
         .CTRL_Flush(CTRL_Flush),
         .F_D_en(F_D_en),
         .F_instr(F_instr),
@@ -129,7 +173,13 @@ module top #(
         .F_pc_out4(F_pc_out4),
         .D_instr(D_instr),
         .D_pc_out(D_pc_out),
-        .D_pc_out4(D_pc_out4)
+        .D_pc_out4(D_pc_out4),
+        .F_prediction_made(F_prediction_made),
+        .F_predicted_taken(F_predicted_taken),
+        .D_prediction_made(D_prediction_made),
+        .D_predicted_taken(D_predicted_taken),
+        .F_btb_PCtarget(F_btb_PCtarget),
+        .D_btb_PCtarget(D_btb_PCtarget)
     );
 
     decode decode_stage (
@@ -158,17 +208,9 @@ module top #(
         .rs2(D_rs2),
         .rd(D_rd),
         .a0(a0),
-        .opcode(D_opcode)
+        .opcode(D_opcode),
+        .is_div(D_is_div)
     );
-
-    //wire stall_control_mem_write;
-    //wire stall_control_reg_write;
-
-    //assign stall_control_mem_write = D_mem_write && ~no_op;
-    //assign stall_control_reg_write = D_RegWrite && ~no_op;
-
-
-
 
     D_E_reg D_E (
         .clk(clk),
@@ -197,6 +239,9 @@ module top #(
         .D_ra(D_rs1),
         .D_rb(D_rs2),
         .D_opcode(D_opcode),
+        .D_prediction_made(D_prediction_made),
+        .D_predicted_taken(D_predicted_taken),
+        .D_is_div(D_is_div),
         .E_RegWrite(E_RegWrite),
         .E_PCTargetSrc(E_PCTargetSrc),
         .E_result_src(E_result_src),
@@ -217,7 +262,12 @@ module top #(
         .E_rd(E_rd),
         .E_ra(E_ra),
         .E_rb(E_rb),
-        .E_opcode(E_opcode)
+        .E_opcode(E_opcode),
+        .E_is_div(E_is_div),
+        .E_prediction_made(E_prediction_made),
+        .E_predicted_taken(E_predicted_taken),
+        .D_btb_PCtarget(D_btb_PCtarget),
+        .E_btb_PCtarget(E_btb_PCtarget)
     );
 
     always_comb begin
@@ -236,6 +286,8 @@ module top #(
     end
 
     execute execute_stage (
+        .clk(clk),
+        .is_div(E_is_div),
         .alu_control(E_alu_control),
         .ALUSrcA(E_alu_srcA),
         .ALUSrcB(E_alu_srcB),
@@ -248,16 +300,17 @@ module top #(
         .rs2(E_forwarded_2),
         .imm_ext(E_imm_ext),
         .ALUResult(E_ALUResult),
-        .PCTarget(F_PCTarget)
+        .PCTarget(PCTarget),
+        .div_stall_flag(div_stall_flag)
     );
-
-
 
     E_M_reg E_M (
         .clk(clk),
         .rst(rst),
-        .E_RegWrite(E_RegWrite),
-        .E_mem_write(E_mem_write),
+        .E_M_en(E_M_en),
+        // A bit hacky but just stops any control signals from passion through when div occurs.
+        .E_RegWrite(div_stall_flag ? 1'b0 : E_RegWrite),
+        .E_mem_write(div_stall_flag ? 1'b0 : E_mem_write),
         .E_type_control(E_type_control),
         .E_sign_ext_flag(E_sign_ext_flag),
         .E_result_src(E_result_src),
@@ -280,18 +333,21 @@ module top #(
 
     memory memory_stage (
         .clk(clk),
+        .rst(rst),
         .mem_write(M_mem_write),
         .type_control(M_type_control),
         .sign_ext_flag(M_sign_ext_flag),
         .alu_result(M_alu_result),
         .write_data(M_write_data),
         .alu_result_out(M_alu_result_out),
-        .read_data(M_mem_read_data)
+        .read_data(M_mem_read_data),
+        .cache_stall(cache_stall)
     );
 
     M_W_reg M_W (
         .clk(clk),
         .rst(rst),
+        .M_W_en(M_W_en),
         .M_RegWrite(M_RegWrite),
         .M_result_src(M_result_src),
         .M_alu_result(M_alu_result_out),
@@ -317,18 +373,16 @@ module top #(
     );
 
     hazard_unit h_u(
-
-
         .PC_en(PC_en),
         .F_D_en(F_D_en),
         .D_E_en(D_E_en),
-
+        .E_M_en(E_M_en),
+        .M_W_en(M_W_en),
 
         .E_opcode(E_opcode),
         .M_opcode(M_opcode),
         .W_opcode(W_opcode),
 
-        //execute stage registers it wants to read
         .d_reg_a(D_rs1),
         .d_reg_b(D_rs2),
         .d_opcode(D_opcode),
@@ -336,30 +390,40 @@ module top #(
         .ex_reg_a(E_ra),
         .ex_reg_b(E_rb),
         .ex_reg_d(E_rd),
-                        
-            
-        //datamem stage
+
         .datamem_reg_write_enable(M_RegWrite),
         .datamem_reg_write_addr(M_rd),
 
-
-
-        //writeback stage
         .wb_reg_write_enable(W_RegWrite),
         .wb_reg_write_addr(W_rd),
 
-        //outputs to mux's controlling inputs in ex stage
         .reg_a(forwarding_sel_a),
         .reg_b(forwarding_sel_b),
         .no_op(no_op),
-    
-        // Control Signals    
+
         .Branch(E_Branch),
         .Jump(E_Jump),
         .branch_taken(branch_taken),
-        .PCSrc(F_PCSrc),
-        .Flush(CTRL_Flush)
-
+        .Flush(CTRL_Flush),
+        .E_prediction_made(E_prediction_made),
+        .E_predicted_taken(E_predicted_taken),
+        .PCSrc(PCSrc),
+        .E_btb_PCtarget(E_btb_PCtarget),
+        .PCTarget(PCTarget),
+        .E_pc_out4(E_pc_out4),
+        .Hazard_target(Hazard_target),
+        .div_stall(div_stall_flag),
+        .cache_stall(cache_stall)
     );
+
+    // Cycle counter
+    logic [63:0] cycle_count;
+
+    always_ff @(posedge clk) begin
+        if (rst)
+            cycle_count <= 64'd0;
+        else
+            cycle_count <= cycle_count + 64'd1;
+    end
 
 endmodule

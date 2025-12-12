@@ -27,7 +27,8 @@ module decode #(
     output logic [4:0]             rs2,
     output logic [4:0]             rd,
     output logic [6:0]             opcode,
-    output logic [DATA_WIDTH-1:0]  a0
+    output logic [DATA_WIDTH-1:0]  a0,
+    output logic                   is_div
 );
 
     logic [2:0] imm_src;
@@ -51,7 +52,8 @@ module decode #(
         .Branch(Branch),
         .Jump(Jump),
         .branchType(branchType),
-        .PCTargetSrc(PCTargetSrc)
+        .PCTargetSrc(PCTargetSrc),
+        .is_div(is_div)
     );
 
     regfile regfile(
