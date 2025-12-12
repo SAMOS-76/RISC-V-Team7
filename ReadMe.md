@@ -69,3 +69,31 @@ Single-cycle CPU that can carry out most CPU operations (Say specific instructio
 <img width="414" height="308" alt="image" src="https://github.com/user-attachments/assets/ae19b3ca-cd87-465d-a798-5379ba36bf8f" />
 
 #### F1
+
+
+https://github.com/user-attachments/assets/702fc385-e185-4802-9f70-d9fd016ca3c9
+
+
+https://github.com/user-attachments/assets/0647b38b-375b-400a-8f1c-8b7e6f01f379
+
+
+
+
+https://github.com/user-attachments/assets/7b674cfa-fa40-462f-b8c4-2e32a44cbaa1
+
+
+
+
+https://github.com/user-attachments/assets/c15ab2b2-3b43-46bb-8ceb-d946e681eeeb
+
+
+
+
+https://github.com/user-attachments/assets/b1ecc930-c15e-4e76-9a75-f5d051aa57e9
+
+
+
+
+
+
+
