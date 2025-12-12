@@ -60,6 +60,8 @@ This static prediction baseline allowed Louis to proceed with data hazard forwar
 
 ## Branch Prediction - Dynamic Prediction System
 
+<img width="620" height="397" alt="Image" src="https://github.com/user-attachments/assets/53c4c2fd-3119-476f-a4a4-a0d2aafa374a" />
+
 ### Research and Design Selection
 
 After researching various branch prediction strategies ([Correlating Branch Prediction](https://www.geeksforgeeks.org/computer-organization-architecture/correlating-branch-prediction/), [Branch Target Prediction - Imperial College](https://www.doc.ic.ac.uk/~phjk/AdvancedCompArchitecture/Lectures/pdfs/Ch03-part2-BranchTargetPrediction.pdf)), I selected a **2-bit saturating counter with Branch Target Buffer** architecture for its significant performance improvement over static prediction, manageable implementation complexity, and well-understood behavior. More sophisticated predictors (tournament, correlating) were out of scope for our project constraints.
@@ -87,7 +89,7 @@ The most significant bit of the 2-bit counter determines the prediction, this al
 **Update State Machine**:
 The counter updates based on actual branch outcomes:
 
-[State transition diagram](https://media.geeksforgeeks.org/wp-content/uploads/20200520205206/pik11.png)
+![State transition diagram](https://media.geeksforgeeks.org/wp-content/uploads/20200520205206/pik11.png)
 
 This saturating counter behavior means a branch must be mispredicted twice consecutively to fully change the prediction, which provides robustness against noise and temporary pattern changes.
 
