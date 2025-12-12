@@ -81,14 +81,16 @@ end
 
 
 always_comb begin : reg_enables
-    // cache stalls, freeze PC, F_D, and D_E, front of pipeline - tried 
-    // but allow E_M and M_W to continue if no other hazards
+    // Cache stall strategy:
+    // - Freeze PC, F_D, D_E (front of pipeline) to prevent new instructions
+    // - Allow E_M, M_W to progress so stalled M-stage instruction can eventually complete
+    // - Insert NO-OP in E stage to create bubble
     if (cache_stall) begin
         PC_en  = 1'b0;
         F_D_en = 1'b0;
         D_E_en = 1'b0;
-        E_M_en = 1'b1;
-        M_W_en = 1'b1;
+        E_M_en = 1'b1;  //ppl drain
+        M_W_en = 1'b1;  //ppll drain
         no_op  = 1'b1;
     end else begin
         PC_en  = reg_en;
