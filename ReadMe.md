@@ -200,7 +200,8 @@ if (!is_paused) {
 ---
 
 ## Pipelined Implementation
-<img width="2776" height="1622" alt="ICA-ALAS-EXAMPLE - Page 13 (1)" src="https://github.com/user-attachments/assets/a32889b6-0a52-413d-899e-d9fbc8c4f8b0" />
+<img width="891" height="520" alt="image" src="https://github.com/user-attachments/assets/72d564ac-dfd6-4343-b2bb-9b7d3f8027bf" />
+
 
 
 ### Architecture Overview
