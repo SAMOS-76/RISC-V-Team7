@@ -89,17 +89,19 @@ We developed four distinct CPUs: a single-cycle processor, pipelined RV32IM, pip
 
 ## Running the Project
 
-All commands should be executed from the `/tb` directory:
+All commands should be executed from the `/tb` directory or the subsequent test folder
+```use +chmod +x *<scriptname>```  *to give yourself access*
 
 <div align="center">
 
 | Command | Purpose |
 |---------|---------|
 | `./doit.sh` | Execute standard test suite |
-| `./doitunit.sh [unit name]` | Run module tests |
+| `./doitunit.sh [unit name]` | Run module tests in Units folder |
 | `./custom_doit.sh` | Run our directory of our own tests |
 | `./pdf.sh [distribution name]` | Run PDF distribution visualization |
 | `./f1.sh` | Run F1 starting lights simulation |
+| `./cacheit.sh` | Run Cache Test suite and performance tests
 
 </div>
 
@@ -226,9 +228,16 @@ These were all done on a fully pipelined cpu and all worked correctly
 
 ### Key Integration Challenges
 
-#### blah blah
+- **Hazard Coordination**: Synchronizing data forwarding, load-use stalls, and cache stalls while handling simultaneous conditions from cache misses and division operations without corrupting the pipeline.
 
-### System Testing
+- **Clock Synchronization**: Standardizing all modules to `posedge clk` after early race conditions from mixed edge triggers in the BTB and register file caused unpredictable behavior.
+
+- **Metadata Propagation**: Ensuring branch prediction flags and opcode validity bits propagate correctly through stages and clear during flushes to prevent spurious stalls and incorrect forwarding.
+
+- **Multi-Cycle Stalls**: Coordinating 32-cycle division and cache miss stalls with selective pipeline freezing strategies while preventing instruction loss or state corruption.
+
+- **Interface Consistency**: Resolving signal naming ambiguities and polarity mismatches between modules (e.g., `memUnsigned` control signal) that caused instruction-specific bugs requiring GTKWave debugging. 
+
 
 ---
 
