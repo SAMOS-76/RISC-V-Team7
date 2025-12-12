@@ -9,7 +9,7 @@ I was primarily responsible for datapath components, memory elements, pipeline c
 
 ### Arithmetic Logic Unit (ALU)
 - Designed and implemented the ALU supporting all required RV32I operations.
-- Verified correct flag generation, combinational timing, and operand routing.
+- Worked with adil to enable correct alu, control unit control
 - **Recommended additions:**  
   - Insert ALU block diagram here (image).  
   - Add link to Verilog file (e.g., `rtl/alu.sv`).  
@@ -18,8 +18,8 @@ I was primarily responsible for datapath components, memory elements, pipeline c
 ---
 
 ### Register File
-- Implemented the 32×32-bit register file with synchronous writes and dual combinational reads.
-- Handled x0 hardwiring, write-enable logic, and cross-module interfacing with decode and execute stages.
+- Implemented the 32×32-bit register file with negedge synchronous writes and dual combinational reads.
+- Handled x0 hardwiring, write-enable logic, and the rst signal reseting register values to 32'b0.
 - **Recommended additions:**  
   - Add link to file (`rtl/regfile.sv`).  
   - Add commit demonstrating integration.
@@ -27,12 +27,39 @@ I was primarily responsible for datapath components, memory elements, pipeline c
 ---
 
 ### Data Memory (DataMem)
-- Implemented on-chip data memory for load/store instructions.
-- Verified byte-array indexing, alignment correctness, and data forwarding interactions.
+- Implemented data memory for load/store instructions.
+- Verified byte-array indexing, byte/half-word/word operations, and a sign extension signal for loading half-words and bytes into 32 bit.
 - **Recommended additions:**  
   - Insert memory diagram or waveform.  
   - Add link to the module file (`rtl/datamem.sv`).
 
+---
+
+### Top-Level Integration & Debugging
+- Conducted complete cpu debugging at the `top.sv` integration layer.
+- Used provided assembly files, my own assembly instructions, and GTKWave to identify specific instructions causing issue
+- Identified problematic assembly instructions to be:
+  ```asm
+   lbu  rd  imm(rs1)
+  ```
+  ```asm
+  lbu  rd  imm(rs1)
+  ```
+- As these both involved the signed/unsigned input I first tracked this input on GTKWave and detected an error, it was the wrong value.
+- I traced the wire into the control unit where the ouput driving this wire was called:
+  ```verilog
+  memunsigned
+  ```
+- This had caused confusion for Sam when he was connecting up on the top level, and meant that the control unit asserted 1 for unsigned whereas the datamem expected 0 for unsigned.
+- I modified the Control Unit to correct this, and also clean up some of the datamem relevant instructions with my knowledge from building it.
+- You can see this in this commit [Top level debug](https://github.com/SAMOS-76/RISC-V-Team7/commit/1eb67f8c9796f942b4225ac20abad4cb5b40a267)
+ 
+- Identified mismatches in control-signal timing, pipeline register propagation, and hazard interactions.
+- Coordinated testing with teammates to validate end-to-end program execution.
+- **Recommended additions:**  
+  - Insert link to `rtl/top.sv`.  
+  - Insert screenshot of full-system simulation.
+ 
 ---
 
 ## Pipeline Design & Hazard Handling
@@ -81,15 +108,7 @@ Developed and integrated a complete data hazard subsystem:
   - Add link to commits related to control hazard fixes.  
   - Add before/after diagrams of control logic.
 
----
 
-## Top-Level Integration & Debugging
-- Conducted cross-module debugging at the `top.sv` integration layer.
-- Identified mismatches in control-signal timing, pipeline register propagation, and hazard interactions.
-- Coordinated testing with teammates to validate end-to-end program execution.
-- **Recommended additions:**  
-  - Insert link to `rtl/top.sv`.  
-  - Insert screenshot of full-system simulation.
 
 ---
 
