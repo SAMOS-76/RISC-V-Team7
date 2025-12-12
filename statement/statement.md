@@ -120,7 +120,7 @@ if (!plot_trigger && top->a0 != idle_a0) {
 ```
 
 ![alt text](<Screenshot 2025-12-12 152723.jpg>)
-*vbuddy displaying pdf plot*
+*vbuddy displaying pdf plot due to testbenching*
 
 I also allowed the rotary encode push button to hook up to our CPU's trigger and pass through to hazard unit to pause the pipeline. 
 Of course using ```top->trigger``` and some improved testbenching to detect the button switch. 
@@ -203,7 +203,7 @@ assign cpu_clk = clk && !stall;  // freeze these stages during cache miss
 
 After the team had finished fundamental pipelining, I looked to build a correct and scalable cache to build into our CPU. I built a new memory wrapper that could be easily integrated with our CPU when ready and easily upgraded to include L2 cache when needed.
 
-<img src="image-3.png" width="500">
+<img src="image-5.png" width="500">
 
 *Memory wrapper diagram*
 
@@ -218,7 +218,7 @@ I implemented a modular cache system with three primary components:
 - **cache_L1.sv** - Dual-way storage array with tag, data, valid, dirty, and LRU bits
 - **cache_data_parser.sv** - Byte/halfword/word access handler and data merger
 
-and full cache testing suite with hit/miss tracking.
+and full cache testing suite with hit/miss tracking as well as unit ```asm.``` tests for targeting word, halfword and byte operations and evictions.
 I debugged myself, with key input at regular meetings often involving **Louis** and **Adil**'s input on how they could help and implement with their modules or update their code to help cache implementation.
 
 ---
@@ -245,7 +245,7 @@ typedef enum logic [1:0] {
 
 <img src="image-2.png" width="450">
 
-<img src="image-4.png" width="10000">
+<img src="image-4.png" >
 
 *Full state machine diagram I designed with some key variable names - may need expanding to view*
 
@@ -359,14 +359,14 @@ L1_write_dirty_way0 = current_write_en ? 1'b1 : 1'b0;
 
 ### Byte/Halfword/Word Access Support
 
-**Feature:** I implemented sub-word access through a data parser module that merges partial writes with existing cache line data:
+**Feature:** I implemented sub-word access through a data parser module that merges partial writes with existing cache line data. The cache receives ```type_control[1:0]``` and ```sign_ext``` signals from the control unit to handle sub-word memory operations, where type_control specifies the access size (byte, halfword, or word) and sign_ext determines whether to sign-extend or zero-extend the loaded data. These control signals enable the cache to properly extract and format data from 32-bit cache lines on cache hits, or pass them through to main memory on cache misses. 
 
 ```systemverilog
 merged_data = base_data;
 case (byte_offset)
     2'b00: merged_data[7:0] = write_data[7:0];
 ```
-
+*code extract*
 **Debug Issue:** Byte operations corrupted cache lines in byte_complex.s because merged_data wasn't initialized with base_data. Storing 0x12 at byte 0, then 0x34 at byte 1, but reading byte 0 gave 0x34. I tried overocmming by ensuring the base data is read first and verifying it's source - but it continues to struggle with these manipulations and needs further debugging.
 
 ---
@@ -440,10 +440,10 @@ assign reg_en = ~(A_L_haz | cache_stall);
 - **Insert NO-OP**: Creates a pipeline bubble in the Execute stage to prevent invalid operations during the stall
 
 I tried to ensure that:
-1. No instruction is lost during stalls
-2. The stalled memory instruction eventually completes
-3. Later pipeline stages can continue retiring completed instructions
-4. The pipeline resumes cleanly after stall resolution
+- No instruction is lost during stalls
+- The stalled memory instruction eventually completes
+- Later pipeline stages can continue retiring completed instructions
+- The pipeline resumes cleanly after stall resolution
 
 *This is a key point of error and further debugging required as different strategies could be used like selective stage freezing based on miss source.*
 
