@@ -6,3 +6,4 @@ main:
     remu a0, t0, t1
 finish:
     beq zero, zero, finish
+    
