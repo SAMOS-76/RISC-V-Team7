@@ -30,7 +30,7 @@ module branch_target_buffer #(
     assign hit_F    = btb_valid[index_F] && (btb_tag[index_F] == tag_F);
     assign target_F = btb_target[index_F];
     
-    always_ff @(posedge clk or posedge rst) begin
+    always_ff @(posedge clk) begin
         if (rst) begin
             for (int i = 0; i < 2**INDEX_BITS; i++) begin
                 btb_valid[i]  = 1'b0;

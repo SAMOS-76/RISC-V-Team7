@@ -11,9 +11,9 @@ module alu_decoder(
             
             2'b01: begin  // Branch operations
                 case (funct3)
-                    3'b000, 3'b001: aluControl = 4'b0001;  // BEQ/BNE
-                    3'b100, 3'b101: aluControl = 4'b0011;  // BLT/BGE
-                    3'b110, 3'b111: aluControl = 4'b0100;  // BLTU/BGEU
+                    3'b000, 3'b001: aluControl = 4'b1000;  // BEQ/BNE - SUBTRACT
+                    3'b100, 3'b101: aluControl = 4'b0010;  // BLT/BGE - SLT
+                    3'b110, 3'b111: aluControl = 4'b0011;  // BLTU/BGEU - SLTU
                     default: aluControl = 4'b0000;
                 endcase
             end

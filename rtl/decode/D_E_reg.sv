@@ -119,6 +119,7 @@ module D_E_reg #(
             E_predicted_taken <= 0;
             E_prediction_made <= 0;
             E_btb_PCtarget <= 0;
+            E_is_div <= 0;
         end
         else if (D_E_en)
         begin
