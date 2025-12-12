@@ -34,7 +34,7 @@ We developed 5 distinct CPUs: a single-cycle processor, pipelined RV32IM, pipeli
 <img width="518" height="432" alt="image" src="https://github.com/user-attachments/assets/62889719-fca4-4a21-b98e-7d99ec9611f9" />
 </p>
 
-**We used Lucid charts for parallel diagram design and to keep up to date with design progress as seen above** 
+**We used lucid-notes throughout the project, a digital 'drawing board' where we could collaborate and evolve designs in real time. It enabled us to visually and functionally keep up with what we were doing on git, with different pages and schematics for our differenct branches. This also enabled us to switch to different branches and help eachother debug as we could look up the relevant schematic on the shared notes.** 
 
 
 ### Project Structure
