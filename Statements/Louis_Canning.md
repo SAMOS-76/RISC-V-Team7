@@ -19,14 +19,14 @@ Our team divided responsibilities across the CPU architecture:
 ### Arithmetic Logic Unit (ALU)
 - Designed and implemented the ALU supporting all required **RV32I operations**
 - Worked with Adil to enable correct ALU and control unit integration
-- *File:* `rtl/alu.sv`
+- [`rtl/alu.sv`](https://github.com/SAMOS-76/RISC-V-Team7/blob/main/rtl/execute/alu.sv)
 
 ---
 
 ### Register File
 - Implemented the **32×32-bit register file** with negedge synchronous writes and dual combinational reads
 - Handled **x0 hardwiring**, write-enable logic, and rst signal resetting register values to `32'b0`
-- *File:* `rtl/regfile.sv`
+- [`rtl/regfile.sv`](https://github.com/SAMOS-76/RISC-V-Team7/blob/main/rtl/decode/regfile.sv)
 
 ---
 
@@ -34,7 +34,7 @@ Our team divided responsibilities across the CPU architecture:
 - Implemented data memory for **load/store instructions**
 - Verified byte-array indexing, byte/half-word/word operations
 - Implemented sign extension signal for loading half-words and bytes into 32-bit registers
-- *File:* `rtl/datamem.sv`
+- [`rtl/datamem.sv`](https://github.com/SAMOS-76/RISC-V-Team7/blob/main/rtl/memory/memory.sv)
 
 ---
 
@@ -65,13 +65,23 @@ lh   rd  imm(rs1)
 - Cleaned up datamem-relevant control signals using my knowledge from building the module
 - **Result:** Single-cycle CPU passed **all tests** including the PDF program
 
+<img width="414" height="308" alt="image" src="https://github.com/user-attachments/assets/aef75c74-7536-4e28-ab87-639cb00c81e2" />
+
+
 **Commit:** [Top level debug](https://github.com/SAMOS-76/RISC-V-Team7/commit/1eb67f8c9796f942b4225ac20abad4cb5b40a267)
 
 ---
 
 ## Pipeline Design & Hazard Handling
 
+<img width="1204" height="642" alt="image" src="https://github.com/user-attachments/assets/bc060a9f-68d3-4657-8049-6dd3d13d45f7" />
+
+
 **Context:** Archie and Sam implemented the basic pipeline structure. I was tasked with **hazard detection and resolution** to ensure correctness and maximize performance.
+
+<img width="896" height="177" alt="image" src="https://github.com/user-attachments/assets/b6462514-3a04-4abe-bf05-bf174802de72" />
+
+
 
 ### Design Strategy
 - **Forwarding** for EX-stage data dependencies (from MEM/WB stages)
@@ -79,6 +89,9 @@ lh   rd  imm(rs1)
 - **Negedge register file writes** to resolve decode-writeback dependencies
 
 ---
+
+<img width="424" height="472" alt="image" src="https://github.com/user-attachments/assets/48186f44-0032-4bab-9222-100dfea06a77" />
+
 
 ### Forwarding Implementation: Top Level
 
@@ -90,11 +103,17 @@ Modified the datapath to include forwarding paths:
 - Combinational read means writeback values are immediately available to `D_E` pipeline register for posedge tick
 
 **Forwarding paths:**
+
+
 - Writeback → Execute forwarding
 - Memory → Execute forwarding
 - Hazard unit controlled MUXes selecting correct data source (MEM, W or no forwarding)
 
+<img width="148" height="292" alt="image" src="https://github.com/user-attachments/assets/b88addba-b248-487b-81f6-4a9d6ddc5316" />
+
+
 **Forwarding MUX implementation:**
+[`hazard_unit.sv`](https://github.com/SAMOS-76/RISC-V-Team7/blob/main/rtl/hazard_unit/hazard_unit.sv)
 ```verilog
 always_comb begin
     case (forwarding_sel_a)
@@ -115,6 +134,9 @@ end
 ---
 
 ### Forwarding Logic: Hazard Unit
+
+
+
 
 **Design approach:**
 - Combinational forwarding logic with **MEM-stage priority** if dependencies exist in both MEM and WB stages
@@ -182,6 +204,10 @@ end
 ---
 
 ### Why Stalling is Necessary (Real CPU Behavior)
+
+
+<img width="820" height="510" alt="image" src="https://github.com/user-attachments/assets/5d42226b-5cfb-4f20-8a27-97280e91b457" />
+
 
 **Physical CPU limitation:**
 Load stalls occur in physical CPUs because there is a **propagation delay** getting data out of the memory block. It cannot be forwarded to the execute stage in time for the next clock cycle.
@@ -252,11 +278,16 @@ end
 
 ## Custom Hazard Testing Framework
 
+
+
+
 ### Motivation
 Hazards are **rare exceptions** that must be handled correctly for the processor to perform accurately with ALL possible instruction sequences. Comprehensive testing of specific edge cases is essential, so I made making an automated environment to do this.
 
 ### Testing Strategy
 Developed a directory of custom assembly programs with accompanying testing scripts, targeting specific hazard scenarios:
+
+[`Data hazard tests`](https://github.com/SAMOS-76/RISC-V-Team7/tree/main/tb/hazards_test_asm)
 
 **Test coverage:**
 - Forwarding into either register or both registers
@@ -281,7 +312,7 @@ Developed a directory of custom assembly programs with accompanying testing scri
   ```
 
 ### Testing Infrastructure
-Modified the provided `verify.cpp` and `doit.sh` to:
+Modified the provided `verify.cpp` and `doit.sh` into [custom_doit.sh](https://github.com/SAMOS-76/RISC-V-Team7/blob/main/tb/custom_doit.sh) and []():
 - Run CPU with custom assembly files
 - Store output waveforms in organized directories
 - Enable rapid identification of issues through systematic testing
