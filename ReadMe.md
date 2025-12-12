@@ -30,6 +30,13 @@ We developed 5 distinct CPUs: a single-cycle processor, pipelined RV32IM, pipeli
 
 </div>
 
+<p align="center">
+<img width="518" height="432" alt="image" src="https://github.com/user-attachments/assets/62889719-fca4-4a21-b98e-7d99ec9611f9" />
+</p>
+
+**We used Lucid charts for parallel diagram design and to keep up to date with design progress as seen above** 
+
+
 ### Project Structure
 ```
 .
