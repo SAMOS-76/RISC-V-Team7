@@ -9,6 +9,10 @@ We developed four distinct CPUs: a single-cycle processor, 5-stage pipelined, pi
 - **`Cache` branch**: Pipelined with Cache
 - **`Branch Prediction` branch**: Pipelined with branch prediction
 
+## Project Progression
+<img width="1348" height="348" alt="image" src="https://github.com/user-attachments/assets/03a4a94f-fa6a-4048-80e9-199f22cce99d" />
+
+
 ## The Team
 
 | Name | Personal Statement |
@@ -17,6 +21,65 @@ We developed four distinct CPUs: a single-cycle processor, 5-stage pipelined, pi
 | Louis Canning | [Statement](./personal%20statements/) |
 | Archie Kendall | [Statement](./personal%20statements/) |
 | Adil Shah | [Statement](./personal%20statements/) |
+
+
+### Project Structure
+```
+.
+├── .gitignore
+├── ReadMe.md
+├── rtl
+│   ├── adder.sv
+│   ├── branch_history_table.sv
+│   ├── decode
+│   │   ├── D_E_reg.sv
+│   │   ├── alu_decoder.sv
+│   │   ├── control_unit.sv
+│   │   ├── decode.sv
+│   │   ├── regfile.sv
+│   │   └── sign_extend.sv
+│   ├── execute
+│   │   ├── E_M_reg.sv
+│   │   ├── alu.sv
+│   │   ├── branch_comparator.sv
+│   │   └── execute.sv
+│   ├── fetch
+│   │   ├── F_D_reg.sv
+│   │   ├── fetch.sv
+│   │   ├── instrMem.sv
+│   │   └── pc_reg.sv
+│   ├── hazard_unit
+│   │   ├── control_hazard.sv
+│   │   └── hazard_unit.sv
+│   ├── memory
+│   │   ├── M_W_reg.sv
+│   │   ├── datamem.sv
+│   │   └── memory.sv
+│   ├── mux.sv
+│   ├── mux4.sv
+│   ├── top.sv
+│   └── writeback
+│       └── writeback.sv
+└── tb
+    ├── Units
+    │   └── [module tests]
+    ├── asm
+    │   ├── 1_addi_bne.s
+    │   ├── 2_li_add.s
+    │   ├── 3_lbu_sb.s
+    │   ├── 4_jal_ret.s
+    │   ├── 5_pdf.s
+    │   └── f1.s
+    ├── assemble.sh
+    ├── custom_doit.sh
+    ├── custom_test_out
+    │   └── [our custom test outputs]
+    ├── custom_tests
+    │   ├── custom_cpu_testbench.h
+    │   └── custom_verify.cpp
+    ├── doit.sh
+    ├── hazards_test_asm
+```
 
 ## Running the Project
 
@@ -41,38 +104,27 @@ Our single-cycle CPU implements the complete RV32I instruction set, enabling sin
 
 | Component | Samuel | Louis | Archie | Adil |
 |-----------|--------|-------|--------|------|
-| Program Counter | X | | | |
-| ALU | | X | | |
-| Register File | | X | | |
-| Instruction Memory | | X | | |
-| Control Unit | | | | X |
-| Sign Extension | | | | X |
-| Data Path Integration | X | x | | |
-| Data Memory | | X | x | |
-| Top-Level Assembly | X | x | | |
-| Unit Testing | | | X | |
-| Integration Testing | | x | X | |
-| F1 Program | X | | | |
+| Program Counter | x | | | |
+| ALU | | x | | |
+| Register File | | x | | |
+| Instruction Memory | | x | | |
+| Control Unit | | | | x |
+| Sign Extension | | | | x |
+| Data Path Integration | x | x | | |
+| Data Memory | | x | x | |
+| Top-Level Assembly | x | x | | |
+| Unit Testing | | | x | |
+| Integration Testing | | x | x | |
+| F1 Program | x | | | |
+| Vbuddy integration | x | | | |
 
-### Project Structure
-```
+### Testing & Verification
 
-```
-
-### Implementation Notes
-
-**Multiplication Unit**: Our M-extension implementation includes a dedicated multiplication unit supporting mul, mulh, mulhsu, and mulhu operations, integrated directly into the execute stage for single-cycle multiplication.
-
-**Control Logic**: The control unit generates all necessary signals based on instruction opcode and funct fields, managing ALU operations, memory access, register writes, and branch decisions.
-
-**Data Path**: Clean separation between fetch, decode, execute, and memory stages with well-defined interfaces between components.
-
-### Verification Results
-
-#### Standard Tests (1-5)
-All provided test cases pass successfully:
 
 <img width="414" height="308" alt="Single cycle test results" src="https://github.com/user-attachments/assets/ae19b3ca-cd87-465d-a798-5379ba36bf8f" />
+
+### Integration onto VBuddy
+
 
 #### F1 Starting Lights Sequence
 
@@ -118,231 +170,45 @@ Our pipelined processor achieves higher throughput through instruction-level par
 
 **Key Features:**
 - Full RV32IM instruction set support
-- Hazard detection and forwarding
-- Branch prediction capabilities
-- Pipeline flushing for control hazards
-- Four-stage pipeline architecture
-
-### Design Schematic
-*[Insert pipelined architecture diagram]*
-
-### Module Contributions
-
-| Component | Samuel | Louis | Archie | Adil |
-|-----------|--------|-------|--------|------|
-| Fetch Stage | | | | |
-| Decode Stage | | | | |
-| Execute Stage | | | | |
-| Memory Stage | | | | |
-| Fetch Pipeline Register | | | | |
-| Decode Pipeline Register | | | | |
-| Execute Pipeline Register | | | | |
-| Memory Pipeline Register | | | | |
-| Hazard Detection Unit | | | | |
-| Branch Prediction Logic | | | | |
-| Pipeline Integration | | | | |
-| Testing & Debugging | | | | |
-
-### Architecture Details
-
-#### Pipeline Stages
-
-**Fetch Stage:**
-- Retrieves instructions from instruction memory
-- Updates program counter
-- Handles branch target calculation
-- Passes instruction to decode stage on clock edge
-
-**Decode Stage:**
-- Extracts instruction fields
-- Reads register file
-- Generates control signals
-- Sign-extends immediate values
-- Detects data hazards
-
-**Execute Stage:**
-- Performs ALU operations
-- Executes multiplication/division
-- Evaluates branch conditions
-- Calculates memory addresses
-- Forwards results to earlier stages
-
-**Memory Stage:**
-- Handles load/store operations
-- Manages data cache interface
-- Prepares writeback data
-
-#### Hazard Management
-
-**Data Hazards:**
-Our hazard unit detects RAW (Read-After-Write) dependencies and implements forwarding:
-- Forward from Execute stage to Execute stage (EX-EX forwarding)
-- Forward from Memory stage to Execute stage (MEM-EX forwarding)
-- Forward from Writeback stage to Execute stage (WB-EX forwarding)
-- Stall insertion when load-use hazard detected
-
-**Control Hazards:**
-- Branch prediction using simple taken/not-taken predictor
-- Pipeline flushing on misprediction
-- Branch target buffer for jump address caching
-
-**Structural Hazards:**
-Avoided through separate instruction and data memories.
-
-#### Pipeline Registers
-
-Pipeline registers store instruction state between stages:
-- **Fetch/Decode**: PC, instruction
-- **Decode/Execute**: Control signals, register values, immediate, PC
-- **Execute/Memory**: ALU result, control signals, register data
-- **Memory/Writeback**: Memory data, ALU result, control signals
-
-All registers update on negative clock edge to prevent race conditions.
-
-### Project Structure
-```
-.
-├── .gitignore
-├── ReadMe.md
-├── rtl
-│   ├── adder.sv
-│   ├── branch_history_table.sv
-│   ├── decode
-│   │   ├── D_E_reg.sv
-│   │   ├── alu_decoder.sv
-│   │   ├── control_unit.sv
-│   │   ├── decode.sv
-│   │   ├── regfile.sv
-│   │   └── sign_extend.sv
-│   ├── execute
-│   │   ├── E_M_reg.sv
-│   │   ├── alu.sv
-│   │   ├── branch_comparator.sv
-│   │   └── execute.sv
-│   ├── fetch
-│   │   ├── F_D_reg.sv
-│   │   ├── fetch.sv
-│   │   ├── instrMem.sv
-│   │   └── pc_reg.sv
-│   ├── hazard_unit
-│   │   ├── control_hazard.sv
-│   │   └── hazard_unit.sv
-│   ├── memory
-│   │   ├── M_W_reg.sv
-│   │   ├── datamem.sv
-│   │   └── memory.sv
-│   ├── mux.sv
-│   ├── mux4.sv
-│   ├── top.sv
-│   └── writeback
-│       └── writeback.sv
-└── tb
-    ├── Units
-    │   └── [module tests]
-    ├── asm
-    │   ├── 1_addi_bne.s
-    │   ├── 2_li_add.s
-    │   ├── 3_lbu_sb.s
-    │   ├── 4_jal_ret.s
-    │   ├── 5_pdf.s
-    │   └── f1.s
-    ├── assemble.sh
-    ├── custom_doit.sh
-    ├── custom_test_out
-    │   └── [our custom test outputs]
-    ├── custom_tests
-    │   ├── custom_cpu_testbench.h
-    │   └── custom_verify.cpp
-    ├── doit.sh
-    ├── hazards_test_asm
-    │   └── [all our custom assembly tests]
-    ├── reference
-    ├── test_out
-    ├── tests
-    │   └── [provided tests]
-    ├── vbuddy_tests
-    │   ├── f1.sh
-    │   ├── f1_tb.cpp
-    │   ├── pdf.sh
-    │   ├── pdf_tb.cpp
-    │   ├── vbuddy.cfg
-    │   └── vbuddy.cpp
-    ├── verification_Brief.md
-    └── verification_Notes.md
-```
+- Data and Control Hazard Detection with forwarding and stalling
 
 ### Testing & Validation
 
-All provided tests pass with correct register states and memory contents.
+We developed custom testing scripts to test our specialised assembly files to ensure the design behaved as desired.
 
 <img width="853" height="595" alt="image" src="https://github.com/user-attachments/assets/d9592c7a-84ae-434f-8503-0933824459d1" />
 
 
 ---
 
-## Implementing Extensions
+## Implementing Further Extensions
 
 ### Integration Overview
 
 **Our extensions:**
-- Full RV32I
+These were all done on a fully pipelined cpu and all worked correctly
 - RV32IM extension
-- Pipelinig + Hazard Unit
+- Branch Prediction
+- Cache
 
-### System Architecture
-*[Insert complete system diagram showing pipeline + cache integration]*
-
-### Integration Contributions
+### Extention Contributions
 
 | Component | Samuel | Louis | Archie | Adil |
 |-----------|--------|-------|--------|------|
-| Execute Stage | | | | |
-| Fetch Stage | | | | |
-| Memory Stage | | | | |
-| Decode Stage | | | | |
-| Cache-Pipeline Interface | | | | |
-| Stall Logic | | | | |
-| System Integration | | | | |
-| Full System Testing | | | | |
+| Pipelining | x | x | x | |
+| Forwarding | | x | | |
+| Load stalls | | x | | |
+| Control Hazards | | | | x |
+| Branch Predictions | | | | x |
+| Pipeline debug | | x | | x |
+| RV32IM extension | x | | | |
+| Cache | | | x | |
 
 ### Key Integration Challenges
 
-#### Cache-Pipeline Synchronization
-Pipeline must stall when cache misses occur:
-- Stall signal propagates from memory stage
-- Earlier pipeline stages freeze
-- PC holds current value
-- Pipeline resumes when cache services miss
-
-#### Hazard Detection with Cache
-Hazard unit must account for:
-- Variable memory stage latency (cache hits vs misses)
-- Stall cycles preventing forwarding
-- Load-use hazards exacerbated by cache misses
-
-#### Branch Prediction with Cache
-Cache misses on instruction fetch affect:
-- Branch prediction accuracy assessment
-- Misprediction penalty calculation
-- Pipeline flush timing
+#### blah blah
 
 ### System Testing
-
-#### Full Test Suite
-Tests 1-8 all pass on complete system, validating:
-- Correct instruction execution
-- Proper pipeline behavior
-- Cache functionality
-- Hazard handling
-- Branch prediction
-
-#### Performance Characteristics
-Complete system achieves:
-- Near-1 IPC on cache-friendly code
-- Efficient handling of cache misses
-- Correct program semantics across all tests
-
-VBuddy demonstrations (F1, PDF) execute correctly on complete system.
 
 ---
 
@@ -350,15 +216,13 @@ VBuddy demonstrations (F1, PDF) execute correctly on complete system.
 
 ### Development Tools
 - Verilator for simulation
-- GTKWave for waveform analysis
 - GTest for C++ testbenches
+- GTKWave for waveform analysis
 - RISC-V GNU toolchain for assembly
 - VBuddy for hardware visualization
 
 ### References
-- RISC-V 32IM Specification: https://cs.sfu.ca/~ashriram/Courses/CS295/assets/notebooks/RISCV/RISCV_CARD.pdf
 - Harris & Harris: *Digital Design and Computer Architecture: RISC-V Edition*
-- Patterson & Hennessy: *Computer Organization and Design: RISC-V Edition*
 
 
 
