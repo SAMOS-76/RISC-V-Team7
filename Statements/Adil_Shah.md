@@ -114,7 +114,6 @@ The BHT uses 2-bit saturating counters to learn branch behavior over time. Each 
 - **Table Size**: Parameterized with `INDEX_BITS = 4`, yielding 16 entries (configurable to 64, 256, or larger as needed)
 - **Indexing Scheme**: Uses PC bits `[INDEX_BITS+1:2]` as the table index
   - Ignores lower 2 bits since instructions are 4-byte aligned
-  - Creates an efficient, conflict-based mapping (multiple branches can share entries)
 - **State Encoding**: Four states representing prediction confidence:
   - `2'b00`: Strongly Not-Taken (SNT)
   - `2'b01`: Weakly Not-Taken (WNT)
@@ -129,12 +128,8 @@ The most significant bit of the 2-bit counter determines the prediction, this al
 
 **Update State Machine**:
 The counter updates based on actual branch outcomes:
-- **SNT**: Branch taken → transition to WNT; branch not-taken → stay at SNT
-- **WNT**: Branch taken → transition to WT; branch not-taken → transition to SNT  
-- **WT**: Branch taken → transition to ST; branch not-taken → transition to WNT
-- **ST**: Branch taken → stay at ST; branch not-taken → transition to WT
 
-//insert photo
+[State transition diagram](https://media.geeksforgeeks.org/wp-content/uploads/20200520205206/pik11.png)
 
 This saturating counter behavior means a branch must be mispredicted twice consecutively to fully change the prediction, which provides robustness against noise and temporary pattern changes.
 
@@ -343,4 +338,4 @@ All implementations are available in the team repository:
   - `rtl/branch_predictor.sv` - Top-level predictor module
   - `rtl/hazard_unit/hazard_unit.sv` - Integrated hazard detection with prediction
   - `rtl/top.sv` - Pipeline integration
-  - `tb/predictor.s` - Custom branch prediction stress test
+  - `tb/asm/predictor.s` - Custom branch prediction stress test
