@@ -205,7 +205,7 @@ module top #(
         .rs2(D_rs2),
         .rd(D_rd),
         .a0(a0),
-        .opcode(D_opcode)
+        .opcode(D_opcode),
         .is_div(D_is_div)
     );
 
@@ -402,7 +402,7 @@ module top #(
         .E_btb_PCtarget(E_btb_PCtarget),
         .PCTarget(PCTarget),
         .E_pc_out4(E_pc_out4),
-        .Hazard_target(Hazard_target)
+        .Hazard_target(Hazard_target),
         .div_stall(div_stall_flag)
     );
 
