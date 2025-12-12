@@ -1,19 +1,17 @@
 # Samuel Amos-Osebeyo's Personal Statement
 
-***Samuel Amos-Osebeyo (SAMOS-76)***
-
 This document provides a comprehensive overview of my contributions to the RISC-V Team7 project.  It outlines the work completed, the design methodologies employed, the challenges encountered and how they were resolved and the key learnings from this experience.
 
 ---
 
 ## Overview
-- [Single-Cycle CPU Implementation](#single-cycle-cpu-implementation)
-  - [Program Counter and Top-Level Architecture](#program-counter-and-top-level-architecture)
-  - [F1 Testing](#F1-Testing)
-- [Pipelined CPU Implementation](#pipelined-cpu-implementation)
-  - [Division Unit - Multi-Cycle Implementation](#division-unit---multi-cycle-implementation)
-  - [RV32M Extension in Pipelined Architecture](#rv32m-extension-in-pipelined-architecture)
-- [Learnings and Project Summary](#learnings-and-project-summary)
+- Single-Cycle CPU Implementation
+  - Program Counter and Top-Level Architecture
+  - F1 Testing
+- Pipelined CPU Implementation (RV32IM)
+  - RV32IM Extension in Pipelined Architecture
+  - Division Unit - Multi-Cycle Implementation
+- What I've learned, mistakes made, and what would I do in the future
 
 ---
 
@@ -23,7 +21,7 @@ This document provides a comprehensive overview of my contributions to the RISC-
 
 [Program Counter Module](https://github.com/SAMOS-76/RISC-V-Team7/blob/single-cycle-multiplication/rtl/fetch/pc_reg.sv) | [Top Level Module](https://github.com/SAMOS-76/RISC-V-Team7/blob/single-cycle-multiplication/rtl/top.sv) | [Supporting Components]([../rtl/](https://github.com/SAMOS-76/RISC-V-Team7/tree/single-cycle-multiplication/rtl))
 
-In the Single-Cycle CPU, I was mainly in charge of implementing all of the top level components, creating the program counter and other top level components, and putting it all together in an intuitive way in the top layer splitting the modules into fetch, decode, and execute.
+In the Single-Cycle CPU, I was mainly in charge of implementing all of the top level components, creating the program counter and other top level components, and putting it all together in an intuitive way in the top layer splitting the modules into fetch, decode, and execute. This gave us a very good base to start working on the pipelined CPU afterwards
 
 [Relevant Commits: Creating top level components](https://github.com/SAMOS-76/RISC-V-Team7/commit/7e6b55f1d9ca81e779cba3783e78b7f22bdf5ed7)
 
@@ -41,21 +39,21 @@ Created a hierarchical processor structure with the following key modules:
 - Implements PC + 4 calculation for sequential instruction fetch
 - Also supports branch offset addition (PC + immediate)
 
-**Multiplexer** (`mux4.sv`):
+**Multiplexer** (`mux.sv`):
 - Used for selecting specific inputs into ALU: 
 
-**Fetch Stage** (`fetch_top.sv`):
+**Fetch Stage** (`fetch.sv`):
 - Retrieves instructions from instruction memory based on current PC
 - Outputs instruction and provides updated PC for next cycle
 - Works in conjunction with PC module for proper sequencing
 
-**Decode Stage** (`decode_top.sv`):
+**Decode Stage** (`decode.sv`):
 - Decodes instruction opcode and function fields
 - Performs immediate sign extension for all instruction formats
 - Reads operands from register file
 - Routes control signals to execute stage
 
-**Execute Stage** (`execute_top.sv`):
+**Execute Stage** (`execute.sv`):
 - Performs arithmetic and logical operations via ALU
 - Evaluates branch conditions
 - Computes addresses for memory operations
@@ -176,7 +174,7 @@ Successfully demonstrated F1 operation with:
 
 My main goal with the Pipelined CPU was to further it's capabilities from a standard R32VI cpu to a R32VIM implementing additional single-cycle multiplication and multi-cycle division functionality. Additionally enhance hazard unit to encompass div stalls.
 
-# Pipelined CPU Implementation with RV32M Extension
+# Pipelined CPU Implementation with RV32IM Extension
 
 [ALU Top Module](../rtl/execute/ALU_top.sv) | [Hazard Unit](../rtl/hazard_unit.sv) | [Division Module](../rtl/execute/div.sv) | [Branch:    Pipeline-MUL-DIV](https://github.com/SAMOS-76/RISC-V-Team7/tree/Pipeline-MUL-DIV) | [Branch:  Pipeline-MUL-final](https://github.com/SAMOS-76/RISC-V-Team7/tree/Pipeline-MUL-final)
 
@@ -184,20 +182,20 @@ My main goal with the Pipelined CPU was to further it's capabilities from a stan
 
 ## Multiplication and Division Instructions
 
-**RV32M Multiplication Operations**:  
+**RV32IM Multiplication Operations**:  
 - `MUL rd, rs1, rs2`: Lower 32 bits of 64-bit product
 - `MULH rd, rs1, rs2`: Upper 32 bits of signed × signed
 - `MULHSU rd, rs1, rs2`: Upper 32 bits of signed × unsigned
 - `MULHU rd, rs1, rs2`: Upper 32 bits of unsigned × unsigned
 
-**RV32M Division Operations**: 
+**RV32IM Division Operations**: 
 - `DIV rd, rs1, rs2`: Signed division 
 - `DIVU rd, rs1, rs2`: Unsigned division 
 - `REM rd, rs1, rs2`: Signed remainder
 - `REMU rd, rs1, rs2`: Unsigned remainder
 
 **Instruction Encoding**:
-All RV32M instructions use opcode `0110011` (R-type instruction) with funct7 = `0000001`
+All RV32IM instructions use opcode `0110011` (R-type instruction) with funct7 = `0000001`
 
 | Instruction | funct3 |
 |-------------|--------|
@@ -210,9 +208,9 @@ All RV32M instructions use opcode `0110011` (R-type instruction) with funct7 = `
 | REM         | 110    |
 | REMU        | 111    |
 
-#### Control Unit for RV32M Instructions
+#### Control Unit for RV32IM Instructions
 
-For this to work the control unit was modified to include these new encodings. Additionally, it sets the is_div flag so the CPU knows a DIV instruction is going to stall the processor.
+For this to work the control unit was modified to include these new encodings. Additionally, it sets the is_div flag so the CPU knows a DIV instruction is about to stall the processor.
 ```systemverilog
 7'b0110011: begin  // R type
                 RegWrite  = 1'b1;
@@ -220,7 +218,7 @@ For this to work the control unit was modified to include these new encodings. A
                 ALUSrcB   = 1'b0;   // Use reg values
                 aluOp     = 2'b10;
 
-                if (instr[31:25] == 7'b0000001) begin // For detecting RV32M instructions
+                if (instr[31:25] == 7'b0000001) begin // For detecting RV32IM instructions
                     aluOp = 2'b11;
 
                     case (funct3)
@@ -234,7 +232,7 @@ For this to work the control unit was modified to include these new encodings. A
                 end
             end
 ```
-#### ALU Decoder for RV32M Instructions
+#### ALU Decoder for RV32IM Instructions
 
 Modified the ALU decoder to decode multiplication, division, and remainder operations.
 
@@ -257,7 +255,7 @@ end
 ```
 
 #### Multiplication Hardware Integration
-**Single-Cycle Multiplier** (`mul.sv`):
+**Single-Cycle Multiplier**:
 
 For multiplication to work, the ALU was modified to also compute these type of instructions. This was standard single-cycle arithmetic since the multiplication operator automatically handles this when operands are declared with stating their sign.
 
@@ -299,9 +297,8 @@ Cycle 33: Output ready; pipeline continues
 
 ### Restoring Division Algorithm
 
-The algorithm processes the dividend from MSB to LSB, building the quotient through repeated subtraction attempts. Kind of like long division.
+The algorithm processes the dividend from MSB to LSB, building the quotient through repeated subtraction attempts. Basically long division.
 
-**Iterative Process**:
 ```systemverilog
 // Each iteration processes one dividend bit
 assign possible_remainder = {remainder_reg[DATA_WIDTH-2:0], dividend_register[DATA_WIDTH-1]};
@@ -323,7 +320,7 @@ else begin
 end
 ```
 
-If we possible have a remainder, meaning our shift has overflower causing our the register to be greater than or equal to the divisor, subtract and set the quotient bit to 1. Otherwise, keep the remainder and set the quotient bit to 0.
+If we possible have a remainder, meaning our shift has overflowed causing our the register to be greater than or equal to the divisor, subtract and set the quotient bit to 1. Otherwise, keep the remainder and set the quotient bit to 0.
 This process repeats 32 times, with each iteration adding a bit to the quotient.
 
 ### Sign Handling for DIV and REM
@@ -347,7 +344,7 @@ One thing to note is that, in RISC-V, the remainder takes the sign of the divide
 
 ### Handling Division by Zero
 RISC-V specifies that division by zero should return:   
-- Quotient:    All 1's 
+- Quotient:    All 1's (keeping signedness of the number)
 - Remainder:  The dividend value 
 
 **Implementation**:
@@ -360,7 +357,7 @@ if (divisor == 0) begin
 end 
 ```
 
-## Hazard Unit Integration for Division Stalls
+### Hazard Unit Integration for Division Stalls
 To correctly implement my division module, the CPU must be stalled for the entire duration of the DIV instruction. To achieve this, I use the is_div flag and the is_finished(div_done) flag to tell the hazard unit that it needs to stall the CPU.
 
 ```systemverilog
@@ -388,3 +385,18 @@ E_M_reg E_M (
     .E_RegWrite(div_stall_flag ? 1'b0 : E_RegWrite),
     .E_mem_write(div_stall_flag ? 1'b0 : E_mem_write),
 ```
+
+### Testing
+
+Tested the multiplication and division a lot in different situations especially in situations that would cause additional stalls on top of the DIV stall.<br>
+[Relevant Commits: Implemented many tests for this CPU](https://github.com/SAMOS-76/RISC-V-Team7/commit/c07ab6be98e57fa1a1bb18e79e09dbfc1bcd131d) <br>
+<img width="525" height="528" alt="image" src="https://github.com/user-attachments/assets/4ef5c2b6-436d-4775-888d-9aa462a50066" />
+
+# What I've learned, mistakes made, and what would I do in the future
+Overall, this was an incredibly rewarding experience as I learnt how to write SystemVerilog as well as gaining a fundamental understanding of the RISC-V instruction set and was even able to further it with the RV32IM instructions. My role of putting the entire single-cycle CPU together allowed me to deeply understand how all the modules of a CPU work together while becoming comfortable with debugging large code bases. Additionally, working on the F1 program helped me improve my assembly and how software interacts with hardware. Developing the additional instructions gave me an insight into the many different ways division is implemented in a CPU. Also how stalls need to be correctly implemented for specific instructions.
+
+Some mistkaes I made when developing the single-cycle top layer was not planning how everything was going to connect before hand. I should have created a standardised framework of how input/outputs were named at the start so it was clearer where wires between modules should go. This mistake meant I had to really understand the functionality of each module to know what module is actually outputted. However, this also gave me a deeper understanding on how everything connects together. Another mistake I made was trying to implement Non-Restoring Division for the DIV module without truly understanding how it worked as it led me to wasting time trying to do something that wasn't correct. A lot of my mistakes boil down to not planning and researching fully first to save myself pain afterwards but I'm glad I've realised this.
+
+In the future I would love to implement more efficient division methods such as SRT division as it's the industry standard with very interesting complexities. Additionally, I would like to further the functionallity of the CPU by implementing superscalar to improve efficiency and to also include more (possibly custom instructions) to further the total functionality.
+
+Thank you!!
