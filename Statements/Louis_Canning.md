@@ -1,6 +1,6 @@
 # My Contribution
 
-This section documents my individual contribution to the Team RISC-V group project. I led the **datapath implementation** and **pipeline hazard resolution**, designing the ALU, register file, and data memory while developing a comprehensive hazard detection unit that enabled our CPU to achieve a **5x performance improvement** through efficient pipelining.
+This section documents my individual contribution to the Team RISC-V group project. I led the **datapath implementation** and **pipeline hazard resolution**, designing the ALU, register file, and data memory while developing a comprehensive hazard detection unit that enabled our CPU to achieve a theoretical **5x performance improvement** through efficient pipelining.
 
 ---
 
@@ -14,6 +14,7 @@ Our team divided responsibilities across the CPU architecture:
 ---
 
 ## Single-Cycle Core: Datapath Components
+<img width="716" height="403" alt="Screenshot 2025-12-12 172322" src="https://github.com/user-attachments/assets/ac86c771-9f3a-45ff-bab7-3f7e30680feb" />
 
 ### Arithmetic Logic Unit (ALU)
 - Designed and implemented the ALU supporting all required **RV32I operations**
@@ -37,7 +38,7 @@ Our team divided responsibilities across the CPU architecture:
 
 ---
 
-## Critical Debugging: Top-Level Integration
+## Debugging Top-Level Integration
 
 ### The Problem
 After integrating all components at `top.sv`, our CPU failed several test programs. I conducted systematic debugging using:
@@ -86,12 +87,12 @@ Modified the datapath to include forwarding paths:
 **Key design decision:** Negedge write to register file
 - Standard practice in pipelined processors
 - Resolves dependency between instruction in decode and writeback
-- Combinational read means writeback values are immediately available to `D_E` pipeline register
+- Combinational read means writeback values are immediately available to `D_E` pipeline register for posedge tick
 
 **Forwarding paths:**
 - Writeback → Execute forwarding
 - Memory → Execute forwarding
-- Hazard unit controlled MUXes selecting correct data source
+- Hazard unit controlled MUXes selecting correct data source (MEM, W or no forwarding)
 
 **Forwarding MUX implementation:**
 ```verilog
@@ -117,7 +118,7 @@ end
 
 **Design approach:**
 - Combinational forwarding logic with **MEM-stage priority** if dependencies exist in both MEM and WB stages
-- Used **enum types** for maintainable code:
+- Used **enum types** for the mux sel to keep code maintainable:
 ```verilog
 typedef enum logic [1:0]{
     none = 2'b00,
@@ -128,7 +129,7 @@ typedef enum logic [1:0]{
 
 **Functionality:**
 - Checks if register values read in EX stage depend on values being written in MEM/WB stages
-- Asserts forwarding control signals to select correct data source
+- Asserts forwarding control signals to make MUX's in top layer select correct data source to forward into EX
 
 ---
 
@@ -136,9 +137,10 @@ typedef enum logic [1:0]{
 
 **The Problem I Discovered:**
 
-Standard hazard detection has a **subtle but critical flaw** that isn't commonly discussed:
+Standard hazard detection has a **small but critical flaw** that isn't commonly discussed that I dscovered in my testing and explored with my designs:
 - Register address fields (`ra`, `rb`, `rd`) occupy the same bit positions across all instruction formats
 - In I-type and U-type instructions, these bit fields represent **immediate values**, not registers
+- These fields will still propagate through pipeline registers as 'fake' register addresses
 - **Example bug scenario:**
   - Previous instruction: `lw x10, 0(x5)` (loading into register x10)
   - Current instruction: `addi x3, x4, 10` (immediate value is 10)
@@ -148,9 +150,9 @@ Standard hazard detection has a **subtle but critical flaw** that isn't commonly
 
 While the execute stage MUXes select immediate values over forwarded data anyway, this creates:
 - Technically incorrect forwarding signals
-- Potential for spurious stalls
-- Non-robust behavior that could cause unexpected issues
-- Violations of architectural correctness
+- Unnescessary stalls - as it isnt a case of just selecting the imm input
+- Non-robust behavior that could cause unexpected issues in certain edgecases
+- Violations of our isa's specified correctness and action
 
 **My Solution:**
 
@@ -171,10 +173,34 @@ end
 **Implementation details:**
 - Uses opcode to check if the 'register' value actually represents a register in that instruction type - not an immediate
 - Opcode check combines with write flags to produce `reg_valid` flags
-- Only valid stall/forward operations occur when both source and destination are actual registers
-- Modified pipeline registers to save instruction opcodes for hazard unit analysis
+- Stall/forward operations occur when both source and destination are actual registers
+- Modified pipeline registers to save instruction opcodes for the hazard to use for this
 
+
+**Outcome**
+- CPU only forwards or stalls when true data dependencies occur, no undefined/incorrect behaviour in edge cases
 ---
+
+### Why Stalling is Necessary (Real CPU Behavior)
+
+**Physical CPU limitation:**
+Load stalls occur in physical CPUs because there is a **propagation delay** getting data out of the memory block. It cannot be forwarded to the execute stage in time for the next clock cycle.
+
+**Solution:**
+- Stall the dependent instruction in execute stage
+- Insert a no-op bubble in its place
+- Allow load instruction to move to writeback stage
+- Forward the loaded data from writeback to execute
+
+**Verilator limitation:**
+Verilator doesn't simulate propagation delays - meaning it 'passes' all load hazard tests without stalling. However, **conceptually it is critical to implement** to understand real hardware behavior and timing closure.
+
+**Validation approach:**
+Rather than just accepting that tests passed, I used **GTKWave** to:
+- Track the number of `no_op` signals generated
+- Compare against expected number of stalls from the program
+- Verified my implementation correctly generated stalls for all load-use hazards
+- **Confirmed the CPU behaves like real hardware** with proper timing constraints
 
 ### Stalling Implementation
 
@@ -182,11 +208,12 @@ end
 ```verilog
 assign A_L_haz = (E_opcode == 7'b0000011 && (((d_reg_a == ex_reg_d) && d_reg_1_valid) || ((d_reg_b == ex_reg_d) && d_reg_2_valid)));
 ```
+Here A_L_haz returns high for a load data dependency
 
 **Stall mechanism:**
 - Detects if instruction in decode depends on a load instruction in execute
 - Modified `D_E` pipeline register to have `no_op` input that sets all values to 0 - producing a **bubble** in execute stage
-- Load instruction continues to MEM stage where data becomes available for forwarding
+- Load instruction continues to MEM stage where data becomes available for forwarding in the next cycle
 
 **Bubble generation code:**
 ```verilog
@@ -219,48 +246,39 @@ end
 - Makes `PC_en`, `F_D_reg_en` and `D_E_reg_en` low
 - Instructions in fetch and decode stages stall in place
 
----
 
-### Why Stalling is Necessary (Real CPU Behavior)
-
-**Physical CPU limitation:**
-Load stalls occur in physical CPUs because there is a **propagation delay** getting data out of the memory block. It cannot be forwarded to the execute stage in time for the next clock cycle.
-
-**Solution:**
-- Stall the dependent instruction in execute stage
-- Insert a no-op bubble in its place
-- Allow load instruction to move to writeback stage
-- Forward the loaded data from writeback to execute
-
-**Verilator limitation:**
-Verilator doesn't simulate propagation delays - meaning it 'passes' all load hazard tests without stalling. However, **conceptually it is critical to implement** to understand real hardware behavior and timing closure.
-
-**Validation approach:**
-Rather than just accepting that tests passed, I used **GTKWave** to:
-- Track the number of `no_op` signals generated
-- Compare against expected number of stalls from the program
-- Verified my implementation correctly generated stalls for all load-use hazards
-- **Confirmed the CPU behaves like real hardware** with proper timing constraints
 
 ---
 
 ## Custom Hazard Testing Framework
 
 ### Motivation
-Hazards are **rare exceptions** that must be handled correctly for the processor to perform accurately with ALL possible instruction sequences. Comprehensive testing is essential.
+Hazards are **rare exceptions** that must be handled correctly for the processor to perform accurately with ALL possible instruction sequences. Comprehensive testing of specific edge cases is essential, so I made making an automated environment to do this.
 
 ### Testing Strategy
-Developed a directory of custom assembly programs targeting specific hazard scenarios:
+Developed a directory of custom assembly programs with accompanying testing scripts, targeting specific hazard scenarios:
 
 **Test coverage:**
 - Forwarding into either register or both registers
 - MEM-stage forwarding priority verification
-- Forwarding for both data AND address in load/store instructions
+- Forwarding for both data AND/OR address in load/store instructions
 - Continuous rewrites to the same register
 - Load-use hazards
 - Multiple sequential loads with dependent instruction
 - Multiple instructions dependent on a single load
 - Complex functions with cascaded dependencies
+- Example:
+  ```asm
+    main:
+    addi    x1, zero, 1
+    addi    a0, zero, 2   
+    sw     a0, 0(x1)
+    lw     x1, 0(x1)   
+    add    x2, x1, x1   
+    add    a0, x2, x1
+        
+    #should output 6
+  ```
 
 ### Testing Infrastructure
 Modified the provided `verify.cpp` and `doit.sh` to:
@@ -270,7 +288,7 @@ Modified the provided `verify.cpp` and `doit.sh` to:
 
 **Impact:**
 - Significantly accelerated CPU debugging
-- Other team members adopted these scripts for their own testing
+- Other team members adopted these scripts for their own testing as the project progressed into morecomplex extensions
 - Created a robust validation framework for the entire project
 
 ---
@@ -340,8 +358,9 @@ TEST_F(CpuTestbench, test_branch_delay)
 - Developed in conjunction with Adil (who also implemented branch prediction)
 - Enabled full deployment of **5-stage pipelining**
 - **40% cycle reduction** in test cases (with branch prediction)
+- Reduced stall frequency due to forwarding + load stalling
 
-**Throughput improvement:**
+**Theoretical throughput improvement:**
 - Critical path reduced to **1/5 of single-cycle design**
 - Enables **5x faster clock speed** in real hardware
 - Stalls only occur for:
@@ -349,7 +368,7 @@ TEST_F(CpuTestbench, test_branch_delay)
   - Incorrectly predicted branches (rare with prediction)
 - **Approximate 5x instruction throughput increase**
 
-*Note: While Verilator cannot represent timing improvements, this design would achieve significant performance gains in synthesized hardware.*
+*Note: Verilator does not represent timing improvements, but this design would achieve significant performance gains in synthesized hardware compared to single cycle.*
 
 ---
 
