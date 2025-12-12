@@ -44,7 +44,7 @@ During the Single-Cycle stage of the project, I did most of the initial componen
 
 Note: A lot of our naming conventions append 'it' to scripts to make terminal commands easier to remember.
 
-<img src="AK_Images/image.png" width="500">
+<img src="AK_Images/image.png" width="400">
 
 *Control unit example unit test passing*
 
@@ -506,14 +506,14 @@ This ensures that **cache stalls override** normal pipeline operation, and the p
 The Full testbench can be run from tb folder using ```./cacheit.sh.```
 For example, the eviction test giving:
 
-<img src="AK_Images/evicttest.png" width="500">
+<img src="AK_Images/evicttest.png" width="400">
 
 
 ![alt text](AK_Images/image-6.png)
 **Cache within CPU**
 
 
-I then helped to integrate everyone's ```enhanced``` feature modules and my cache into one cpu which now passes all tests with my cache workaround. see: *final-cpu-test branch* commits: **b0166f8**, **ef2812b**
+I then helped to integrate everyone's ```enhanced``` feature modules and my cache into one architecture which now passes all tests with my cache workaround. see: *final-cpu-test branch* commits: **b0166f8**, **ef2812b**
 
 ---
 
