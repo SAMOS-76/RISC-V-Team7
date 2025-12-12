@@ -36,7 +36,10 @@ We developed four distinct CPUs: a single-cycle processor, pipelined RV32IM, pip
 ├── ReadMe.md
 ├── rtl
 │   ├── adder.sv
-│   ├── branch_history_table.sv
+│   ├── branch_prediction
+│   │   ├── branch_history_table.sv
+│   │   ├── branch_predictor.sv
+│   │   └── branch_target_buffer.sv
 │   ├── decode
 │   │   ├── D_E_reg.sv
 │   │   ├── alu_decoder.sv
@@ -48,6 +51,7 @@ We developed four distinct CPUs: a single-cycle processor, pipelined RV32IM, pip
 │   │   ├── E_M_reg.sv
 │   │   ├── alu.sv
 │   │   ├── branch_comparator.sv
+│   │   ├── div.sv
 │   │   └── execute.sv
 │   ├── fetch
 │   │   ├── F_D_reg.sv
@@ -59,6 +63,10 @@ We developed four distinct CPUs: a single-cycle processor, pipelined RV32IM, pip
 │   │   └── hazard_unit.sv
 │   ├── memory
 │   │   ├── M_W_reg.sv
+│   │   ├── cache.sv
+│   │   ├── cache_L1.sv
+│   │   ├── cache_controller.sv
+│   │   ├── cache_data_parser.sv
 │   │   ├── datamem.sv
 │   │   └── memory.sv
 │   ├── mux.sv
@@ -68,23 +76,33 @@ We developed four distinct CPUs: a single-cycle processor, pipelined RV32IM, pip
 │       └── writeback.sv
 └── tb
     ├── Units
-    │   └── [module tests]
+    │   ├── Testing_Guide.md
+    │   ├── [testbench headers]
+    │   ├── [verify implementations]
+    │   └── doitunit.sh
     ├── asm
     │   ├── 1_addi_bne.s
     │   ├── 2_li_add.s
     │   ├── 3_lbu_sb.s
     │   ├── 4_jal_ret.s
     │   ├── 5_pdf.s
-    │   └── f1.s
-    ├── assemble.sh
-    ├── custom_doit.sh
-    ├── custom_test_out
-    │   └── [our custom test outputs]
+    │   ├── f1.s
+    │   └── predictor.s
+    ├── cache_testing
+    │   └── [cache test assemblies]
+    ├── hazards_test_asm
+    │   ├── [data hazard tests]
+    │   ├── div.s
+    │   └── mul.s
     ├── custom_tests
     │   ├── custom_cpu_testbench.h
     │   └── custom_verify.cpp
-    ├── doit.sh
-    ├── hazards_test_asm
+    ├── reference
+    │   └── [PDF reference materials]
+    ├── assemble.sh
+    ├── cacheit.sh
+    ├── custom_doit.sh
+    └── doit.sh
 ```
 
 ## Running the Project
