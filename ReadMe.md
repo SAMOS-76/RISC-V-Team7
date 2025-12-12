@@ -1,11 +1,13 @@
 # RISC-V 32IM CPU
 
 ## Introduction
-We developed two distinct CPUs: a single-cycle processor featuring an integrated multiplication unit and a high-performance pipelined RV32IM CPU with cache memory. Our implementation includes advanced features such as branch prediction, ALU-integrated multiplication, and a multicycle division unit for complete M-extension support.
-
+We developed four distinct CPUs: a single-cycle processor, 5-stage pipelined, pipelined RV32IM, pipelined with cache, pipelined with branch prediction.
 ## Quick Access
-- **`main` branch**: Fully tested Pipelined RV32IM CPU with cache
-- **`SingleCycle` branch**: Verified single-cycle CPU with multiplication support
+- **`main` branch**: Fully tested Pipelined RV32I
+- **`SingleCycle` branch**: Verified single-cycle CPU
+- **`RV32IM` branch**: Pipelined RV32IM perofrming complex maths instructions
+- **`Cache` branch**: Pipelined with Cache
+- **`Branch Prediction` branch**: Pipelined with branch prediction
 
 ## The Team
 
@@ -23,82 +25,38 @@ All commands should be executed from the `/tb` directory:
 | Command | Purpose |
 |---------|---------|
 | `./doit.sh` | Execute standard test suite |
-| `./vbuddy_tests/pdf.sh` | Run PDF distribution visualization |
-| `./vbuddy_tests/f1.sh` | Run F1 starting lights simulation |
+| `./doitunit.sh [unit name]` | Run module tests |
+| `./custom_doit.sh` | Run our directory of our own tests |
+| `./pdf.sh [distribution name]` | Run PDF distribution visualization |
+| `./f1.sh` | Run F1 starting lights simulation |
 
 ---
 
 ## Single Cycle Implementation
 
 ### Design Overview
-Our single-cycle CPU implements the core RV32I instruction set with M-extension multiplication support, enabling single-cycle execution of arithmetic, logical, memory, and control flow operations.
-
-### Architecture
-
-**Supported Instructions:**
-- **R-type**: add, sub, and, or, xor, slt, sltu, sll, srl, sra, mul, mulh, mulhsu, mulhu
-- **I-type (ALU)**: addi, andi, ori, xori, slti, sltiu, slli, srli, srai
-- **I-type (Load)**: lbu, lw
-- **I-type (Jump)**: jalr
-- **S-type**: sb, sw
-- **B-type**: beq, bne
-- **U-type**: lui
-- **J-type**: jal
+Our single-cycle CPU implements the complete RV32I instruction set, enabling single-cycle execution of arithmetic, logical, memory, and control flow operations.
 
 ### Module Contributions
 
 | Component | Samuel | Louis | Archie | Adil |
 |-----------|--------|-------|--------|------|
-| Program Counter | | | | |
-| ALU & Multiplication | | | | |
-| Register File | | | | |
-| Instruction Memory | | | | |
-| Control Unit | | | | |
-| Sign Extension | | | | |
-| Data Path Integration | | | | |
-| Data Memory | | | | |
-| Top-Level Assembly | | | | |
-| Unit Testing | | | | |
-| Integration Testing | | | | |
-| F1 Program | | | | |
-| Documentation | | | | |
+| Program Counter | X | | | |
+| ALU | | X | | |
+| Register File | | X | | |
+| Instruction Memory | | X | | |
+| Control Unit | | | | X |
+| Sign Extension | | | | X |
+| Data Path Integration | X | x | | |
+| Data Memory | | X | x | |
+| Top-Level Assembly | X | x | | |
+| Unit Testing | | | X | |
+| Integration Testing | | x | X | |
+| F1 Program | X | | | |
 
 ### Project Structure
 ```
-├── rtl/
-│   ├── fetch/
-│   │   ├── pc_register.sv
-│   │   ├── instr_mem.sv
-│   │   └── fetch_top.sv
-│   ├── decode/
-│   │   ├── reg_file.sv
-│   │   ├── control.sv
-│   │   ├── signextend.sv
-│   │   └── decode_top.sv
-│   ├── execute/
-│   │   ├── alu.sv
-│   │   ├── multiply_unit.sv
-│   │   └── execute_top.sv
-│   ├── memory/
-│   │   ├── datamem.sv
-│   │   └── memory_top.sv
-│   ├── mux.sv
-│   └── top.sv
-├── tb/
-│   ├── asm/
-│   │   ├── 1_addi_bne.s
-│   │   ├── 2_li_add.s
-│   │   ├── 3_lbu_sb.s
-│   │   ├── 4_jal_ret.s
-│   │   ├── 5_pdf.s
-│   │   └── f1_fsm.s
-│   ├── our_tests/
-│   │   └── [unit test files]
-│   ├── vbuddy_test/
-│   │   ├── f1_fsm_tb.cpp
-│   │   └── pdf_tb.cpp
-│   ├── doit.sh
-│   └── assemble.sh
+
 ```
 
 ### Implementation Notes
@@ -243,203 +201,93 @@ All registers update on negative clock edge to prevent race conditions.
 
 ### Project Structure
 ```
-├── rtl/
-│   ├── fetch/
-│   │   ├── fetch_top.sv
-│   │   ├── fetch_pipeline_regfile.sv
-│   │   └── pc_register.sv
-│   ├── decode/
-│   │   ├── decode_top.sv
-│   │   ├── decode_pipeline_regfile.sv
-│   │   ├── register_file.sv
-│   │   ├── control_unit.sv
-│   │   └── sign_ext.sv
-│   ├── execute/
-│   │   ├── execute_top.sv
-│   │   ├── execute_pipeline_regfile.sv
-│   │   ├── alu.sv
-│   │   ├── branch_logic.sv
-│   │   └── hazard_unit.sv
-│   ├── memory/
-│   │   ├── memory_top.sv
-│   │   ├── memory_pipeline_regfile.sv
-│   │   ├── data_mem.sv
-│   │   └── loadstore_parsing_unit.sv
-│   ├── top-module-interfaces/
-│   │   ├── interfaceD.sv
-│   │   ├── interfaceE.sv
-│   │   ├── interfaceM.sv
-│   │   └── interfaceW.sv
-│   └── top.sv
-└── tb/
+.
+├── .gitignore
+├── ReadMe.md
+├── rtl
+│   ├── adder.sv
+│   ├── branch_history_table.sv
+│   ├── decode
+│   │   ├── D_E_reg.sv
+│   │   ├── alu_decoder.sv
+│   │   ├── control_unit.sv
+│   │   ├── decode.sv
+│   │   ├── regfile.sv
+│   │   └── sign_extend.sv
+│   ├── execute
+│   │   ├── E_M_reg.sv
+│   │   ├── alu.sv
+│   │   ├── branch_comparator.sv
+│   │   └── execute.sv
+│   ├── fetch
+│   │   ├── F_D_reg.sv
+│   │   ├── fetch.sv
+│   │   ├── instrMem.sv
+│   │   └── pc_reg.sv
+│   ├── hazard_unit
+│   │   ├── control_hazard.sv
+│   │   └── hazard_unit.sv
+│   ├── memory
+│   │   ├── M_W_reg.sv
+│   │   ├── datamem.sv
+│   │   └── memory.sv
+│   ├── mux.sv
+│   ├── mux4.sv
+│   ├── top.sv
+│   └── writeback
+│       └── writeback.sv
+└── tb
+    ├── Units
+    │   └── [module tests]
+    ├── asm
+    │   ├── 1_addi_bne.s
+    │   ├── 2_li_add.s
+    │   ├── 3_lbu_sb.s
+    │   ├── 4_jal_ret.s
+    │   ├── 5_pdf.s
+    │   └── f1.s
+    ├── assemble.sh
+    ├── custom_doit.sh
+    ├── custom_test_out
+    │   └── [our custom test outputs]
+    ├── custom_tests
+    │   ├── custom_cpu_testbench.h
+    │   └── custom_verify.cpp
+    ├── doit.sh
+    ├── hazards_test_asm
+    │   └── [all our custom assembly tests]
+    ├── reference
+    ├── test_out
+    ├── tests
+    │   └── [provided tests]
+    ├── vbuddy_tests
+    │   ├── f1.sh
+    │   ├── f1_tb.cpp
+    │   ├── pdf.sh
+    │   ├── pdf_tb.cpp
+    │   ├── vbuddy.cfg
+    │   └── vbuddy.cpp
+    ├── verification_Brief.md
+    └── verification_Notes.md
 ```
 
 ### Testing & Validation
 
-#### Core Test Suite (Tests 1-5)
-All baseline tests pass with correct register states and memory contents.
+All provided tests pass with correct register states and memory contents.
 
-#### Extended Test Suite (Tests 6-8)
+<img width="853" height="595" alt="image" src="https://github.com/user-attachments/assets/d9592c7a-84ae-434f-8503-0933824459d1" />
 
-**Test 6 - Shift Operations:**
-- Tests sll, srl, sra instructions
-- Validates immediate shift variants (slli, srli, srai)
-- Confirms correct shift amounts and direction
-
-**Test 7 - Logic Operations:**
-- Verifies xor, or, and operations
-- Tests comparison instructions (slt, sltu)
-- Validates immediate variants
-
-**Test 8 - Memory Operations:**
-- Tests lb, lh, lw load variants
-- Validates sh, sw store operations
-- Confirms proper byte/halfword alignment
-
-All 8 tests pass successfully, validating complete RV32IM support.
-
-#### Performance Analysis
-Compared to single-cycle, the pipelined version achieves:
-- Higher instruction throughput (approaching 1 IPC with good hazard management)
-- Better cycle time due to shorter critical path
-- Overall speedup on multi-instruction programs
 
 ---
 
-## Cache Implementation
-
-### Design Overview
-We implement a 2-way set-associative cache with write-back policy and LRU replacement. This cache design balances hit rate, hardware complexity, and access latency.
-
-**Cache Specifications:**
-- 2-way set associative
-- 512 sets (1024 total cache lines)
-- 32-bit word size
-- Write-back policy
-- LRU replacement algorithm
-
-### Architecture
-
-**Cache Organization:**
-```
-Address breakdown:
-[Tag | Set Index | Byte Offset]
-```
-
-Each set contains:
-- Two cache lines (ways)
-- Valid bit per line
-- Dirty bit per line
-- Tag per line
-- LRU bit (0 = way 0 recently used, 1 = way 1 recently used)
-
-### Module Contributions
-
-| Component | Samuel | Louis | Archie | Adil |
-|-----------|--------|-------|--------|------|
-| Cache Controller | | | | |
-| SRAM Module | | | | |
-| 2-Port RAM | | | | |
-| Memory Top Integration | | | | |
-| Cache Testing | | | | |
-| Performance Analysis | | | | |
-
-### Implementation Details
-
-#### Cache Controller Logic
-
-**Read Hit:**
-1. Compare tag with both ways
-2. Return data from matching way
-3. Update LRU bit
-
-**Read Miss:**
-1. Check LRU to determine eviction way
-2. If dirty bit set, write back to memory
-3. Fetch new line from memory
-4. Update cache line (data, tag, valid, clear dirty)
-5. Update LRU bit
-
-**Write Hit:**
-1. Update data in matching way
-2. Set dirty bit
-3. Update LRU bit
-
-**Write Miss:**
-1. Follow read miss procedure
-2. Update fetched line with new data
-3. Set dirty bit
-
-#### Memory Interface
-
-The cache interfaces with:
-- **Upstream (CPU)**: Receives read/write requests with addresses and data
-- **Downstream (Main Memory)**: Issues memory reads on misses, writes on dirty evictions
-
-Stall signal indicates when CPU must wait for cache miss handling.
-
-### Project Structure
-```
-├── rtl/
-│   ├── memory/
-│   │   ├── two_way_cache_top.sv
-│   │   ├── two_way_cache_controller.sv
-│   │   ├── sram.sv
-│   │   ├── ram2port.sv
-│   │   └── memory_top.sv
-│   └── ...
-└── tb/
-    └── our_tests/
-        └── cache_top_tb.cpp
-```
-
-### Testing Strategy
-
-Our cache testing validates:
-
-**Functional Correctness:**
-- Basic read/write operations
-- Hit detection for both ways
-- Miss handling and memory fetch
-- LRU replacement policy
-- Dirty bit and write-back mechanism
-- Byte and word addressing
-
-**Edge Cases:**
-- Cache line boundaries
-- Simultaneous hits in both ways (shouldn't occur)
-- Full cache scenarios
-- Alternating access patterns
-
-**Performance Metrics:**
-- Hit rate across different workloads
-- Average memory access time
-- Stall cycle analysis
-
-#### Results
-
-Cache implementation passes all unit tests. Performance improvement over single-cycle:
-- Execution time: **[X] ms** (cached) vs **[Y] ms** (uncached)
-- Hit rate: **~XX%** on typical workloads
-- Significant reduction in memory access latency
-
-VBuddy tests (F1, PDF) run correctly with cache enabled.
-
----
-
-## Complete System
+## Implementing Extensions
 
 ### Integration Overview
-Our complete RISC-V processor combines pipelining and caching into a unified, high-performance design supporting the full RV32IM instruction set.
 
-**System Features:**
-- 4-stage pipeline
-- 2-way set-associative cache
-- Complete RV32IM ISA
-- Hazard detection and forwarding
-- Branch prediction
-- Multicycle division
-- Integrated multiplication
+**Our extensions:**
+- Full RV32I
+- RV32IM extension
+- Pipelinig + Hazard Unit
 
 ### System Architecture
 *[Insert complete system diagram showing pipeline + cache integration]*
