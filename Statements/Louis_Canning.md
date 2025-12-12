@@ -405,3 +405,9 @@ TEST_F(CpuTestbench, test_branch_delay)
   - Shared testing infrastructure across team
 
 ---
+## Team Comments
+The team worked really well together, we were very ambitious and achieved the extensions we aimed for:
+- Adil implemented a very impressive branch prediction mechanism, and was very good to work with when we were integrating our modules and debugging
+- Archie can take much of the credit for the teams success from his extremely efficient and effective testbenching, flagging up errors on modules on correcting them in such a way that when we joined them all on the top level the only issue was the CU driving the signed flag the wrong way round (due to a misleading variable name), this enabled us to get single cycle working and progress onto extensions quickly.
+- Sam was succesful in combining the top level of the single cycle cpu, extended our design to rv32m architecture, and producing the f1 assembly code and getting it (as well as the pdfs) onto vbuddy for demonstration
+Overall very happy with my team - looking forward to what the compiler project brings! 
