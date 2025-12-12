@@ -28,7 +28,11 @@
 
 During the Single-Cycle stage of the project, I did most of the initial component verification, I agreed with all members to develop a two-layer modular testing framework to enable rapid, reliable prototyping. Working in the **verification branch**, the framework consisted of reusable testbench base classes (```clocked_testbench.h ``` and ```comb_testbench.h```) for the interaction layer, integrated with Google Test assertions in module-specific ``*``_verify.cpp``` files for the validation layer. **All our Unit tests now in ./tb/Units folder**
 
+
+<p align="center">
 <img src="AK_Images/image-1.png" width="400">
+</p>
+
 
 | Module | Testbench (.h) | Tests (.cpp) | Tests Passed |
 |--------|----------------|--------------|--------------|
@@ -609,6 +613,12 @@ Given more time, I'm eager to pursue several extensions across four key areas:
 **Communication & Workflow:**
 
 We communicated through daily WhatsApp standups and weekly in-person sessions, using Git feature branches for parallel development. When disagreements arose, we resolved them through data-driven discussion and thorough testing. The steep learning curve required mutual support, sharing debugging techniques, pairing on Vbuddy tests, and normalising asking for help when hitting architectural dead ends.
+
+I also setup the LucidChart Diagram and lead architecture Diagram Design to ensure all team members could collab in parallel. 
+
+<p align="center">
+<img width="518" height="432" alt="image" src="https://github.com/user-attachments/assets/f5f997f1-21f5-4505-84e8-c6dea37d7b3c" />
+</p>
 
 **Key Lessons:**
 - Modular interfaces enabled parallel work
