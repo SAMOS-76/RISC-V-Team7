@@ -383,6 +383,10 @@ TEST_F(CpuTestbench, test_branch_delay)
 
 ## Performance Impact
 
+Passed all of our own, and all provided tests:
+<img width="873" height="978" alt="image" src="https://github.com/user-attachments/assets/2914d44e-b53c-463a-9f68-5903d65effa5" />
+
+
 ### Quantified Results
 
 **Hazard unit benefits:**
