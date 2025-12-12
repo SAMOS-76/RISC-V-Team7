@@ -6,9 +6,10 @@ We developed four distinct CPUs: a single-cycle processor, pipelined RV32IM, pip
 ## Quick Access
 - **`main` branch**: Final Pipelined CPU with multiply, data cache and branch prediction capabilites combined.
 - **`SingleCycle` branch**: Verified single-cycle CPU
-- **`RV32IM` branch**: Pipelined RV32IM perofrming complex maths instructions
-- **`Cache` branch**: Pipelined with Cache
+- **`*MUL` branch**: Pipelined RV32IM perofrming complex maths instructions
+- **`Cache-final` branch**: Pipelined with Cache
 - **`Branch Prediction` branch**: Pipelined with branch prediction
+- *some branches left for other utiilties and referencing, but all inherit from their main function name eg Cache, Mul, Pipelined etc* 
 
 ## Project Progression
 
