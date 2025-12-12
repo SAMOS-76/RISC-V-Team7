@@ -193,6 +193,7 @@ I targeted potential bug-points such as:
 - load hazards
 - multiple sequential loads with a dependent instruction after
 - multiple instructions dependent on a single load
+- a complex function with a range of cascaded dependencies
 
 After this I modified the provided verify.cpp and doit.sh to run and test the cpu with those assembly files I developed, storing the output waveform in its own folder.
 This was very helpful and enabled me to pinpoint issues in the cpu quickly, other team members later adopted these scripts and used it to test the cpu with their own custom assembly instructions.
@@ -209,69 +210,52 @@ This was very helpful and enabled me to pinpoint issues in the cpu quickly, othe
 
 ---
 
-# Performance Analysis and Testing
+# Testing
 
-## Test Methodology
+To test we developed further assembly programs and added GTests to the testing script I developed to assert that the processor behaved as desired.
+Here is a snapshot of a few tests:
 
-### Correctness Testing
-Developed comprehensive test programs to validate that predicted execution produced identical architectural state (register file + memory) compared to a baseline non-predicted pipeline.
+```c++
+TEST_F(CpuTestbench, complex_load_hazard)
+{
+    setupTest("7_complex_load_hazard");
+    initSimulation();
+    runSimulation(100);
+    EXPECT_EQ(top_->a0, 6);
+}
 
-### Performance Measurement
-Implemented cycle-counting infrastructure to track:
-- Total cycle count  
-- Number of mispredictions (flush events)  
-- Misprediction rate  
+TEST_F(CpuTestbench, out_lbu)
+{
+    setupTest("8_out_lbu");
+    initSimulation();
+    runSimulation(1000);
+    EXPECT_EQ(top_->a0, 300);
+}
 
-**Recommended additions:**  
-- Link to testbench counter code  
-- Screenshot of waveform showing cycle counter increments  
 
----
 
-## Benchmark Results
+TEST_F(CpuTestbench, test_diagnostic)
+{
+    setupTest("10_diagnostic");
+    initSimulation();
+    runSimulation(1000);
+    EXPECT_EQ(top_->a0, 39);
+}
 
-### AddiBNE Loop Program
-A loop-heavy benchmark with a simple increment + branch structure.
+TEST_F(CpuTestbench, test_branch_delay)
+{
+    setupTest("11_branch_delay");
+    initSimulation();
+    runSimulation(150);
+    EXPECT_EQ(top_->a0, 5);
+}
+```
 
-| Predictor | Cycle Count | Notes |
-|----------|-------------|-------|
-| Static (baseline) | 1277 cycles | Predict-not-taken |
-| Dynamic (2-bit + BTB) | 771 cycles | Full predictor pipeline |
+# Performance Improvement
 
-**Improvement:** 506 cycles saved (~40% faster).
-
-Shows strong effectiveness of the dynamic predictor on predictable loop patterns.
-
----
-
-### Custom Predictor Stress Test (`predictor.s`)
-Purposefully difficult branch patterns tested:
-- Rapid alternation (worst-case for 2-bit saturating counters)
-- Nested loops with different iteration counts
-- Mixed biases and non-uniform behavior
-
-Results showed:
-- Correctness maintained even in pathological cases  
-- Performance gracefully degrades to static baseline when prediction is impossible  
-- Predictor learns stable patterns after a few iterations  
-
-**Recommended additions:**  
-- Link to `tb/asm/predictor.s`.  
-- Add waveform showing prediction state transitions.
-
----
-
-## Analysis of Results
-
-### Why the Predictor Improves Performance
-- Loop branches are taken repeatedly, then fall through once.  
-- 2-bit counters quickly saturate to strongly-taken state.  
-- Correct predictions = zero penalty; pipeline continues uninterrupted.  
-- Only the final exit branch is mispredicted.
-
-### Behavior on Complex Patterns
-- Alternating patterns prevent counters from stabilizing.  
-- Performance approaches static prediction, validating expected theoretical limits.
+The hazard unit which I developed in conjunction with Adil, (who also further implemented branch prediction reduced clock cycles by 40% in some of our test cases), enabled us to fully deplot 5 stage pipelining in a cpu.
+Although verilator cannot represent timing, this would reduce the critical path to 1/5 of the single cycle's, enabling a 5x quicker clock speed. Considering how stalls are only one cycle and are rare (only for load hazards and incorrectly predicted branched),
+this increases the instruction throughput by approximately 5x - a huge performance boost.
 
 ---
 
@@ -279,14 +263,15 @@ Results showed:
 
 ### SystemVerilog RTL Design
 - Parameterized module development  
-- Use of `typedef` and `struct` for clean interfaces  
-- Proper synthesis-safe separation of sequential vs. combinational logic  
-- Understanding of clocking, timing, and critical paths  
+- Use of `typedef`, and `struct` for clean interfaces code 
+- Proper synthesis-safe separation of sequential vs. combinational logic, using default statements to prevent latches  
+- Understanding of clocking, timing, and critical paths   
 
 ### Computer Architecture
+- Single cycle processor design
+- ALU, datamem, regfile, CU
 - Pipeline design, data/structural hazards, control hazards  
-- Branch prediction algorithms and design trade-offs  
-- Performance profiling and cycle-accurate measurement  
+- Forwarding and load-stalling   
 
 ### Debugging Methodology
 - Systematic waveform-driven debugging  
@@ -294,10 +279,11 @@ Results showed:
 - Incremental integration and test-driven verification  
 
 ### Collaboration & Documentation
-- Clean module interfaces for team integration  
-- Effective Git branching workflow  
+- Clean module interfaces for team integration
+- Documenting module details + ports on the shared cpu sheet (lucid-notes)
+- Effective Git branching workflow on shared project developing independent and dependent extensions 
 - Clear commit messages and inline documentation  
-- Reproducible performance analysis  
+- Good communication/project management in the team: working together for the single cycle and the working in pairs on extensions. 
 
 ---
 
