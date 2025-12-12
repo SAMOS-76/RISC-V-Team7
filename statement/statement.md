@@ -29,6 +29,17 @@ During the Single-Cycle stage of the project, I did most of the initial componen
 
 <img src="image-1.png" width="400">
 
+| Module | Testbench (.h) | Tests (.cpp) | Tests Passed |
+|--------|----------------|--------------|--------------|
+| ALU | ✓ | ✓ | ✓ |
+| Control Unit | ✓ | ✓ | ✓ |
+| Data Memory | ✓ | ✓ | ✓ |
+| Register File | ✓ | ✓ | ✓ |
+| Sign Extend | ✓ | ✓ | ✓ |
+| Template | ✓ | ✓ | - |
+| **Base Classes** | clocked_testbench.h<br>comb_testbench.h | | - |
+| **Build/Docs** | doitunit.sh| | - |
+
 *Test Setup - Visualised*
 
 Note: A lot of our naming conventions append 'it' to scripts to make terminal commands easier to remember.
@@ -120,7 +131,7 @@ if (!plot_trigger && top->a0 != idle_a0) {
 ```
 
 ![alt text](<Screenshot 2025-12-12 152723.jpg>)
-*vbuddy displaying pdf plot due to testbenching*
+*example: vbuddy displaying pdf plot due to testbenching*
 
 I also allowed the rotary encode push button to hook up to our CPU's trigger and pass through to hazard unit to pause the pipeline. 
 Of course using ```top->trigger``` and some improved testbenching to detect the button switch. 
@@ -140,7 +151,7 @@ To bridge this gap, I investigated BRAM (Block RAM) primitives for potential FPG
 **Configuration:**
 - **Capacity:** 16-byte cache lines (4 words × 32 bits)
 - **Associativity:** 2-way set associative
-- **Replacement:** Pseudo-LRU (1-bit per set)
+- **Replacement:** LRU (1-bit per set)
 - **Write Policy:** Write-back with dirty bit tracking
 
 **BRAM Storage Structure** (303-bit entries, synchronous write / asynchronous read):
@@ -218,7 +229,7 @@ I implemented a modular cache system with three primary components:
 - **cache_L1.sv** - Dual-way storage array with tag, data, valid, dirty, and LRU bits
 - **cache_data_parser.sv** - Byte/halfword/word access handler and data merger
 
-and full cache testing suite with hit/miss tracking as well as unit ```asm.``` tests for targeting word, halfword and byte operations and evictions.
+and full cache testing suite with hit/miss tracking as well as unit ```asm.``` tests for targeting word, halfword and byte operations and evictions in the ```cache_testing folder```
 I debugged myself, with key input at regular meetings often involving **Louis** and **Adil**'s input on how they could help and implement with their modules or update their code to help cache implementation.
 
 ---
@@ -492,18 +503,18 @@ Where:
 
 This ensures that **cache stalls override** normal pipeline operation, and the pipeline remains frozen until the cache controller clears the stall signal.
 
-Full testbench can be run from tb folder using ./cacheit.sh.
+The Full testbench can be run from tb folder using ```./cacheit.sh.```
 For example, the eviction test giving:
 
 <img src="evicttest.png" width="500">
 
 
-talk about further tests and whats currently failing
-
+![alt text](image-3.png)
+*Cache within CPU*
 ---
 
-## Prefetch Attempt in 
-**cache-prefetch Branch**
+## Prefetch Attempt
+**in prefetch-attempt Branch**
 
 Although the cache hadn't been fully debugged, I was fascinated with optimization techniques as I had already tried to stretch myself in single cycle with 4-word burst to utilize better spatial locality also. So I added prefetch infrastructure on a separate branch for our pipelined version.
 
@@ -562,7 +573,46 @@ else prefetch_victim_way = L1_lru_bit;
 
 This still needs to be debugged along with the cache, but could still be integrated into our CPU. 
 
+---
 
+### Future Plans
+
+Given more time, I'm eager to pursue several extensions across four key areas:
+
+**Immediate Priorities:**
+- Debug remaining cache coherence issues
+- Complete prefetch implementation
+- Explore true LRU replacement policies
+
+**Architectural Enhancements:**
+- Two-level adaptive branch prediction with BTB
+- L2 unified cache with coherence protocols
+- Out-of-order execution with Tomasulo's algorithm
+
+**Hardware Synthesis:**
+- Full FPGA implementation leveraging my BRAM exploration
+- Timing closure and resource optimization
+
+**Formal Methods:**
+- Property-based verification of cache invariants
+- Model checking for hazard correctness
+
+---
+
+### Teamwork and Collaboration
+
+**Communication & Workflow:**
+
+We communicated through daily WhatsApp standups and weekly in-person sessions, using Git feature branches for parallel development. When disagreements arose, we resolved them through data-driven discussion and thorough testing. The steep learning curve required mutual support, sharing debugging techniques, pairing on Vbuddy tests, and normalising asking for help when hitting architectural dead ends.
+
+**Key Lessons:**
+- Modular interfaces enabled parallel work
+- Comprehensive testing built confidence
+- Intertwined collaboration allowed rapid prototyping
+
+I look forward to working with the same team members in the future.
+
+**Many thanks to Louis, Adil and Sam.**
 
 
 
