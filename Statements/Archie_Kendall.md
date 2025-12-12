@@ -1,4 +1,5 @@
-# Contents
+#Archie Kendall - Personal Statement 
+### Contents
 #### Contributions
 
 1. [Fundamental Unit Testing](#fundamental-unit-testing---test-and-verification-of-single-cycle-components)
