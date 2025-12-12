@@ -5,7 +5,7 @@ I was primarily responsible for datapath components, memory elements, pipeline c
 
 ---
 
-## Core Hardware Contributions
+## Core Hardware Contributions - Single Cycle
 
 ### Arithmetic Logic Unit (ALU)
 - Designed and implemented the ALU supporting all required RV32I operations.
