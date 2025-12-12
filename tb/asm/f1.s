@@ -7,7 +7,8 @@ main:
 loop:   #loops until t0 = 8 (light sequence complete)
 
     bge     t0, t1, lights_out    
-    jal     ra, increase       
+    jal     ra, increase 
+    jal     ra, delay      
     addi    t0, t0, 1
     j       loop
 
@@ -19,6 +20,13 @@ increase: #adds another light
 
 lights_out:
     li      a0, 0
+
+delay:
+    li      t3, 20
+delay_loop:
+    addi    t3, t3, -1
+    bnez    t3, delay_loop
+    RET
 
 
 end:

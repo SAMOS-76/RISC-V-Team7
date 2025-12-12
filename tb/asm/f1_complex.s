@@ -5,7 +5,7 @@ main:
     li      a0, 0   # output register: a0 
     li      t0, 0   # iteration counter: t0
     li      t1, 8   # iteration number
-    li      s0, 1   # Stores starting value of random variable
+    li      s0, 16   # Stores starting value of random variable
 
 
 loop:   #loops until t0 = 8 (light sequence complete)
@@ -24,7 +24,7 @@ increase: #adds another light
 
 
 delay:
-    li      t3, 10
+    li      t3, 20
 delay_loop:
     addi    t3, t3, -1
     bnez    t3, delay_loop
@@ -59,3 +59,4 @@ last_delay:
 random_delay:
     addi t3, t3, -1
     bnez t3, random_delay
+    ret

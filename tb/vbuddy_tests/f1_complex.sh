@@ -12,7 +12,7 @@ PROGRAM_HEX_DIR="../"
 
 # assemble
 if [ -f "../assemble.sh" ] && [ -f "$ASM_DIR/f1_complex.s" ]; then
-    echo "assembling f1.s..."
+    echo "assembling f1_complex.s..."
     ../assemble.sh "$ASM_DIR/f1_complex.s"
 fi
 
