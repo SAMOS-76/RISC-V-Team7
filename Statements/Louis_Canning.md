@@ -431,7 +431,10 @@ Passed all of our own, and all provided tests:
 
 ### Collaboration & Documentation
 - Clean module interfaces for team integration
-- Detailed documentation of module specifications and ports on the top level(lucid-notes)
+- Detailed documentation of module specifications and ports on the top level
+- we used lucid-notes, a digital 'drawing board' where we could collaborate and evolve designs and keep up to date visually and functionally with what was going on on git, with different pages and schematics for our differenct branches
+  <img width="1436" height="875" alt="image" src="https://github.com/user-attachments/assets/d0757975-7a7c-47cb-b11c-b9d84f65efbb" />
+
 - Effective Git branching workflow on shared project
 - Clear commit messages and inline code documentation
 - Strong communication and project management:
@@ -441,7 +444,7 @@ Passed all of our own, and all provided tests:
 
 ---
 ## Team Comments
-The team worked really well together, we were very ambitious and achieved the extensions we aimed for:
+The team worked really well together:
 - Adil implemented a very impressive branch prediction mechanism, and was very good to work with when we were integrating our modules and debugging
 - Archie can take much of the credit for the teams success from his extremely efficient and effective testbenching, flagging up errors on modules on correcting them in such a way that when we joined them all on the top level the only issue was the CU driving the signed flag the wrong way round (due to a misleading variable name), this enabled us to get single cycle working and progress onto extensions quickly.
 - Sam was succesful in combining the top level of the single cycle cpu, extended our design to rv32m architecture, and producing the f1 assembly code and getting it (as well as the pdfs) onto vbuddy for demonstration
