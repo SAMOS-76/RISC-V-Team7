@@ -126,6 +126,7 @@ All commands should be executed from the `/tb` directory or the subsequent test 
 ---
 
 ## Single Cycle Implementation
+<img width="1810" height="1028" alt="ICA-ALAS-EXAMPLE - Page 13" src="https://github.com/user-attachments/assets/ae4a27e7-325e-446e-9207-5a62b0c3f370" />
 
 ### Design Overview
 Our single-cycle CPU implements the complete RV32I instruction set, enabling single-cycle execution of arithmetic, logical, memory, and control flow operations.
@@ -199,9 +200,11 @@ if (!is_paused) {
 ---
 
 ## Pipelined Implementation
+<img width="2776" height="1622" alt="ICA-ALAS-EXAMPLE - Page 13 (1)" src="https://github.com/user-attachments/assets/a32889b6-0a52-413d-899e-d9fbc8c4f8b0" />
+
 
 ### Architecture Overview
-Our pipelined processor achieves higher throughput through instruction-level parallelism across four pipeline stages: fetch, decode, execute, and memory. This design processes multiple instructions concurrently, with each stage handling a different instruction simultaneously.
+Our pipelined processor achieves higher throughput through instruction-level parallelism across four pipeline stages: fetch, decode, execute, and memory. This design processes multiple instructions concurrently, with each stage handling a different instruction simultaneously. As well as continuing to pass key fundamental tests. 
 
 **Key Features:**
 - Full RV32IM instruction set support
@@ -220,6 +223,8 @@ We developed custom testing scripts to test our specialised assembly files to en
 ## Implementing Further Extensions
 
 ### Integration Overview
+<img width="3498" height="2086" alt="ICA-ALAS-EXAMPLE - Page 13 (2)" src="https://github.com/user-attachments/assets/298ec862-6f0b-4bc2-9c57-cbcbbf186d05" />
+
 
 **Our extensions:**
 These were all done on a fully pipelined cpu and all worked correctly
@@ -254,7 +259,7 @@ These were all done on a fully pipelined cpu and all worked correctly
 
 - **Multi-Cycle Stalls**: Coordinating 32-cycle division and cache miss stalls with selective pipeline freezing strategies while preventing instruction loss or state corruption.
 
-- **Interface Consistency**: Resolving signal naming ambiguities and polarity mismatches between modules (e.g., `memUnsigned` control signal) that caused instruction-specific bugs requiring GTKWave debugging. 
+- **Interface Consistency**: Resolving signal naming ambiguities and polarity mismatches between modules (e.g., `memUnsigned` control signal) that caused instruction-specific bugs requiring GTKWave debugging.
 
 
 ---
