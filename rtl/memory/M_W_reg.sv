@@ -3,6 +3,7 @@ module M_W_reg #(
 ) (
     input  logic clk,
     input  logic rst,
+    input  logic M_W_en,
     input  logic M_RegWrite,
     input  logic [1:0] M_result_src,
     input  logic [DATA_WIDTH-1:0] M_alu_result,
@@ -10,7 +11,7 @@ module M_W_reg #(
     input  logic [DATA_WIDTH-1:0] M_pc_out4,
     input  logic [4:0] M_rd,
     input  logic [6:0] M_opcode,
-    
+
     output logic W_RegWrite,
     output logic [1:0] W_result_src,
     output logic [DATA_WIDTH-1:0] W_alu_result,
@@ -28,8 +29,8 @@ module M_W_reg #(
             W_pc_out4 <= 0;
             W_rd <= 0;
             W_opcode <= 0;
-        end 
-        else 
+        end
+        else if (M_W_en)
         begin
             W_RegWrite <= M_RegWrite;
             W_result_src <= M_result_src;

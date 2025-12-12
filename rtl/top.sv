@@ -77,6 +77,7 @@ module top #(
 
     logic [DATA_WIDTH-1:0] M_mem_read_data;
     logic [DATA_WIDTH-1:0] M_alu_result_out;
+    logic cache_stall;
 
     logic W_RegWrite;
     logic [1:0] W_result_src;
@@ -97,6 +98,8 @@ module top #(
 
     logic F_D_en;
     logic D_E_en;
+    logic E_M_en;
+    logic M_W_en;
     logic PC_en;
     logic no_op;
 
@@ -304,6 +307,7 @@ module top #(
     E_M_reg E_M (
         .clk(clk),
         .rst(rst),
+        .E_M_en(E_M_en),
         // A bit hacky but just stops any control signals from passion through when div occurs.
         .E_RegWrite(div_stall_flag ? 1'b0 : E_RegWrite),
         .E_mem_write(div_stall_flag ? 1'b0 : E_mem_write),
@@ -329,18 +333,21 @@ module top #(
 
     memory memory_stage (
         .clk(clk),
+        .rst(rst),
         .mem_write(M_mem_write),
         .type_control(M_type_control),
         .sign_ext_flag(M_sign_ext_flag),
         .alu_result(M_alu_result),
         .write_data(M_write_data),
         .alu_result_out(M_alu_result_out),
-        .read_data(M_mem_read_data)
+        .read_data(M_mem_read_data),
+        .cache_stall(cache_stall)
     );
 
     M_W_reg M_W (
         .clk(clk),
         .rst(rst),
+        .M_W_en(M_W_en),
         .M_RegWrite(M_RegWrite),
         .M_result_src(M_result_src),
         .M_alu_result(M_alu_result_out),
@@ -369,6 +376,8 @@ module top #(
         .PC_en(PC_en),
         .F_D_en(F_D_en),
         .D_E_en(D_E_en),
+        .E_M_en(E_M_en),
+        .M_W_en(M_W_en),
 
         .E_opcode(E_opcode),
         .M_opcode(M_opcode),
@@ -381,7 +390,7 @@ module top #(
         .ex_reg_a(E_ra),
         .ex_reg_b(E_rb),
         .ex_reg_d(E_rd),
-                        
+
         .datamem_reg_write_enable(M_RegWrite),
         .datamem_reg_write_addr(M_rd),
 
@@ -391,7 +400,7 @@ module top #(
         .reg_a(forwarding_sel_a),
         .reg_b(forwarding_sel_b),
         .no_op(no_op),
-    
+
         .Branch(E_Branch),
         .Jump(E_Jump),
         .branch_taken(branch_taken),
@@ -403,7 +412,8 @@ module top #(
         .PCTarget(PCTarget),
         .E_pc_out4(E_pc_out4),
         .Hazard_target(Hazard_target),
-        .div_stall(div_stall_flag)
+        .div_stall(div_stall_flag),
+        .cache_stall(cache_stall)
     );
 
     // Cycle counter

@@ -23,7 +23,8 @@ module hazard_unit(
     input   logic   [4:0] wb_reg_write_addr,
     input   logic   [6:0] W_opcode,
 
-    input   logic   div_stall, // Divider stall flag
+    input   logic   div_stall,   // Divider stall flag
+    input   logic   cache_stall, // Cache stall flag
 
 
     //outputs to mux's controlling inputs in ex stage
@@ -33,6 +34,8 @@ module hazard_unit(
     output logic            PC_en,
     output logic            F_D_en,
     output logic            D_E_en,
+    output logic            E_M_en,
+    output logic            M_W_en,
 
     output logic            no_op,
 
@@ -77,24 +80,40 @@ always_comb begin : opcode_check
 end
 
 always_comb begin : reg_enables
-    if (branch_mispredict) begin
+    // Cache stall strategy:
+    // - Freeze PC, F_D, D_E (front of pipeline) to prevent new instructions
+    // - Allow E_M, M_W to progress so stalled M-stage instruction can eventually complete
+    // - Insert NO-OP in E stage to create bubble
+    if (cache_stall) begin
+        PC_en  = 1'b0;
+        F_D_en = 1'b0;
+        D_E_en = 1'b0;
+        E_M_en = 1'b1;  // Pipeline drain
+        M_W_en = 1'b1;  // Pipeline drain
+        no_op  = 1'b1;
+    end else if (branch_mispredict) begin
         PC_en  = 1'b1;
         F_D_en = 1'b1;
         D_E_en = 1'b1;
+        E_M_en = 1'b1;
+        M_W_en = 1'b1;
         no_op  = 1'b0;
     end else begin
-            PC_en  = reg_en && !div_stall; 
-            F_D_en = reg_en && !div_stall;
-            D_E_en = reg_en && !div_stall;
-            no_op  = (~reg_en);
-        end
+        PC_en  = reg_en && !div_stall;
+        F_D_en = reg_en && !div_stall;
+        D_E_en = reg_en && !div_stall;
+        E_M_en = 1'b1;
+        M_W_en = 1'b1;
+        no_op  = (~reg_en) || div_stall;
+    end
 end
 
 logic A_L_haz;
 
 assign A_L_haz = (E_opcode == 7'b0000011 && (((d_reg_a == ex_reg_d) && d_reg_1_valid) || ((d_reg_b == ex_reg_d) && d_reg_2_valid)));
 
-assign reg_en = ~(A_L_haz);
+// Cache controller handles all memory hazards via cache_stall signal
+assign reg_en = ~(A_L_haz || cache_stall);
     
 always_comb begin
 
