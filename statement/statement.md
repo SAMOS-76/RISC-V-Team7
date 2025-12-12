@@ -25,7 +25,7 @@
 
 ### Fundamental Unit Testing - Test and Verification of Single Cycle Components
 
-During the Single-Cycle stage of the project, I did most of the initial component verification, I agreed with all members to develop a two-layer modular testing framework to enable rapid, reliable prototyping. Working in the **verifciation branch**, the framework consisted of reusable testbench base classes (```clocked_testbench.h ``` and ```comb_testbench.h```) for the interaction layer, integrated with Google Test assertions in module-specific ``*``_verify.cpp``` files for the validation layer. **All our Unit tests now in ./tb/Units folder**
+During the Single-Cycle stage of the project, I did most of the initial component verification, I agreed with all members to develop a two-layer modular testing framework to enable rapid, reliable prototyping. Working in the **verification branch**, the framework consisted of reusable testbench base classes (```clocked_testbench.h ``` and ```comb_testbench.h```) for the interaction layer, integrated with Google Test assertions in module-specific ``*``_verify.cpp``` files for the validation layer. **All our Unit tests now in ./tb/Units folder**
 
 <img src="image-1.png" width="400">
 
@@ -509,7 +509,7 @@ For example, the eviction test giving:
 <img src="evicttest.png" width="500">
 
 
-![alt text](image-3.png)
+![alt text](image-6.png)
 *Cache within CPU*
 ---
 
