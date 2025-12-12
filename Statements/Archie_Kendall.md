@@ -17,7 +17,7 @@
    - [3-State FSM & LRU Replacement](#finite-state-machine-fsm)
    - [Cache Testing, Stall Handling & Performance Metrics](#cache-stall-handling-and-hazard-unit-integration)
 
-5. [Prefetch Attempt](#prefetch-attempt-in)
+5. [Prefetching](#prefetching)
    - [Zero-Penalty Sequential Prefetch](#state-machine-extension)
    - [Conditional Prefetch Logic](#conditional-prefetch-logic)
 
@@ -38,7 +38,7 @@ During the Single-Cycle stage of the project, I did most of the initial componen
 | Sign Extend | ✓ | ✓ | ✓ |
 | Template | ✓ | ✓ | - |
 | **Base Classes** | clocked_testbench.h<br>comb_testbench.h | | - |
-| **Build/Docs** | doitunit.sh| | - |
+| **Build** | ./doitunit.sh| | - |
 
 *Test Setup - Visualised*
 
@@ -60,8 +60,10 @@ RTL_SOURCE=$(find ../../rtl -maxdepth 3 -type f -name "${MODULE}.sv" | head -n 1
 ```cpp
 template<class Module>
 class ClockedTestbench : public ::testing::Test {
-    // Single base class supports all clocked modules
-}
+    // Single base class supports all clocked modules for safe reuse of key functions and quick prototyping
+} 
+//this would lead to eg.
+class DataMemTestbench : public ClockedTestbench<Vdatamem>{}
 ```
 
 **Dynamic Per-Test Waveform Naming (automatic debugging):**
@@ -508,10 +510,14 @@ For example, the eviction test giving:
 
 
 ![alt text](AK_Images/image-6.png)
-*Cache within CPU*
+**Cache within CPU**
+
+
+I then helped to integrate everyone's ```enhanced``` feature modules and my cache into one cpu which now passes all tests with my cache workaround. see: *final-cpu-test branch* commits: **b0166f8**, **ef2812b**
+
 ---
 
-## Prefetch Attempt
+## Prefetching
 **in prefetch-attempt Branch**
 
 Although the cache hadn't been fully debugged, I was fascinated with optimization techniques as I had already tried to stretch myself in single cycle with 4-word burst to utilize better spatial locality also. So I added prefetch infrastructure on a separate branch for our pipelined version.
@@ -612,9 +618,15 @@ I look forward to working with the same team members in the future.
 
 **Many thanks to Louis, Adil and Sam.**
 
+---
 
+## Key Contributions Summary
 
-
+- **Unit Testing Framework**: Designed template-based testbench system with automated build scripts and GTKWave integration, verifying 7+ critical modules and preventing integration failures
+- **Pipelined CPU Integration**: Co-designed F/D/E/M/W architecture and developed Vbuddy test suite with build phase detection for F1 and PDF validation
+- **L1 Writeback Cache Implementation**: Architected 2-way set associative cache with 3-state FSM, LRU replacement, write-back policy, and cache-hazard unit integration achieving correct stall propagation and passing some key tests
+- **Performance Optimization**: Implemented comprehensive cache testing suite with hit/miss metrics and explored zero-penalty prefetching with sequential line prediction
+- **Memory Architecture**: Explored BRAM primitives for FPGA synthesis, Prefetching, and 4 word bursting. 
 
 
 
