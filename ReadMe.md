@@ -1,7 +1,7 @@
 # RISC-V 32IM CPU
 
 ## Introduction
-We developed four distinct CPUs: a single-cycle processor, pipelined RV32IM, pipelined with cache, pipelined with branch prediction and a pipelined CPU that combines all cache multiply & branch prediction capabilities.
+We developed 5 distinct CPUs: a single-cycle processor, pipelined RV32IM, pipelined with cache, pipelined with branch prediction and a pipelined CPU that combines all cache multiply & branch prediction capabilities.
 
 ## Quick Access
 - **`main` branch**: Final Pipelined CPU with multiply, data cache and branch prediction capabilites combined.
@@ -130,7 +130,7 @@ All commands should be executed from the `/tb` directory or the subsequent test 
 <img width="1810" height="1028" alt="ICA-ALAS-EXAMPLE - Page 13" src="https://github.com/user-attachments/assets/ae4a27e7-325e-446e-9207-5a62b0c3f370" />
 
 ### Design Overview
-Our single-cycle CPU implements the complete RV32I instruction set, enabling single-cycle execution of arithmetic, logical, memory, and control flow operations.
+Our single-cycle CPU implements all RV32I instructions (except fence, ecall & ebreak) , enabling single-cycle execution of arithmetic, logical, memory, and control flow operations. This satisfies the requirements of stretch goal 3 from the brief.
 
 ### Module Contributions
 
@@ -159,6 +159,8 @@ Our single-cycle CPU implements the complete RV32I instruction set, enabling sin
 <p align="center">
   <img width="414" height="308" alt="Single cycle test results" src="https://github.com/user-attachments/assets/ae19b3ca-cd87-465d-a798-5379ba36bf8f" />
 </p>
+
+The testing script validated the CPU functionality through the given tests, modular tests were completed before integration as well.
 
 ### Integration onto VBuddy
 
@@ -203,10 +205,8 @@ if (!is_paused) {
 ## Pipelined Implementation
 <img width="891" height="520" alt="image" src="https://github.com/user-attachments/assets/72d564ac-dfd6-4343-b2bb-9b7d3f8027bf" />
 
-
-
 ### Architecture Overview
-Our pipelined processor achieves higher throughput through instruction-level parallelism across four pipeline stages: fetch, decode, execute, and memory. This design processes multiple instructions concurrently, with each stage handling a different instruction simultaneously. As well as continuing to pass key fundamental tests. 
+Our pipelined processor achieves higher throughput through instruction-level parallelism across 5 pipeline stages: fetch, decode, execute, memory & writeback. An additional hazard unit was created to detect and mitigate any data, control and structural hazards that arose. This design processes multiple instructions concurrently, with each stage handling a different instruction simultaneously. As well as continuing to pass key fundamental tests. This satisfies the requirements for stretch goal 2 from the brief.
 
 **Key Features:**
 - Full RV32IM instruction set support
@@ -215,6 +215,8 @@ Our pipelined processor achieves higher throughput through instruction-level par
 ### Testing & Validation
 
 We developed custom testing scripts to test our specialised assembly files to ensure the design behaved as desired.
+
+The specialised assembly programs were needed to either evaluate extension performance or for debugging purposes. The test prints from the script can be seen below. 
 
 <p align="center">
   <img width="853" height="595" alt="image" src="https://github.com/user-attachments/assets/d9592c7a-84ae-434f-8503-0933824459d1" />
@@ -232,7 +234,11 @@ We developed custom testing scripts to test our specialised assembly files to en
 These were all done on a fully pipelined cpu and all worked correctly
 - RV32IM extension
 - Branch Prediction
-- Cache
+- 2 way set associative Cache
+
+These are all explored in more depth in our individual statements, all exentions had a quantifiable improvement over the standard pipelined version while still maintaining correctness across the board giving us the same test prints as the image seen just above. They were developed parallely on the base pipeline CPU and once extensive testing was completed, all these improvements were compiled into the one CPU.
+
+With the completion of the cache all recommended stretch goals menmtioned in the brief have been achieved.
 
 ### Extention Contributions
 
