@@ -109,37 +109,101 @@ I was primarily responsible for datapath components, memory elements, pipeline c
   } forward_type;
   ```
 - Checks if register values that have been read are dependent on values being writen to in later stages.
+- 
 ### Hazard Unit - opcode Check
-I found an issue that isn't commonly mentioned: as the ra and rb values passed through to the execute stage come from the same bit field every time, which can represent immediate values in some instructions. 
-- I modified the pipeline registers to save the opcode of the instruction in the stage.
+I found an issue that isn't commonly mentioned: as the ra and rb values passed through to the execute stage come from the same bit field every time, which can represent immediate values in some instructions.
+Which means that if you have an immediate value of #10, and previous instruction is loading to x10, this could incorrectly flag an issue and cause forwarding, this could also happen the other way round with an immmediate value in the rd of the writing instruction.
+- Now theoritically this might not have a huge impact as the mux's in the execute pick the immediate values instead of the forwarded values anyway
+- However, it is technically incorrect behaviour, which could have unexpected impacts in forwarding or stalling behaviour, so to be consistent and robust my hazard unit performs checks to see if the fields we are comparing between the execute stage and mem/writeback stage to see if there is a dependency are actually register fields, and then using this outcome to decide whether to forward/stall.
+```verilog
+always_comb begin : opcode_check
+    d_reg_1_valid = ~(d_opcode == 7'b0010111 | d_opcode == 7'b0110111 | d_opcode == 7'b1101111);
+    d_reg_2_valid = ~(d_opcode == 7'b0010111 | d_opcode == 7'b0110111 | d_opcode == 7'b1100111 | d_opcode == 7'b1101111 | d_opcode == 7'b0000011 | d_opcode == 7'b0010011);
+
+    E_reg_1_valid = ~(E_opcode == 7'b0010111 | E_opcode == 7'b0110111 | E_opcode == 7'b1101111 | E_opcode == 7'b0000000);
+    E_reg_2_valid = ~(E_opcode == 7'b0010111 | E_opcode == 7'b0110111 | E_opcode == 7'b1100111 | E_opcode == 7'b1101111 | E_opcode == 7'b0000011 | E_opcode == 7'b0010011 | E_opcode == 7'b0000000);
+
+    W_reg_c_valid = ~(W_opcode == 7'b0100011 | W_opcode == 7'b1100011 | ~wb_reg_write_enable);
+    M_reg_c_valid = ~(M_opcode == 7'b0100011 | M_opcode == 7'b1100011 | ~datamem_reg_write_enable);
+end
+```
+
+- This uses the opcode to check if the 'register' value passed through actually represents a register in that instruction type - not an imm.
+- opcode check combines with wirte flags to producee 'reg_valid' flags that are used in comparisons to make sure only valid stall/forward operations occur.
+- I modified the pipeline registers to save the opcode of the instruction in the stage to use in the hazard unit.
 
 
-### Stalling & Hazard Detection
-- Created stall conditions for load-use hazards.
-- Coordinated stall/flush signals across pipeline registers.
+### Stalling
+#### Implementation
+- Checks if instruction in decode is dependent on a load instruction in execute.
+  ```verilog
+  assign A_L_haz = (E_opcode == 7'b0000011 && (((d_reg_a == ex_reg_d) && d_reg_1_valid) || ((d_reg_b == ex_reg_d) && d_reg_2_valid)));
+  ```
+- Modified D_E pipeline register to have no_op input that sets all values to 0 - producing a bubble in execute stage, load instruction continues to mem stage.
+  Bubble mechanism:
+  ```verilog
+        else if (CTRL_Flush|| no_op) begin
+            E_RegWrite <= 0;
+            E_PCTargetSrc <= 0;
+            E_result_src <= 0;
+            E_mem_write <= 0;
+            E_alu_control <= 0;
+            E_alu_srcA <= 0;
+            E_alu_srcB <= 0;
+            E_sign_ext_flag <= 0;
+            E_Branch <= 0;
+            E_Jump <= 0;
+            E_branchType <= 0;
+            E_pc_out <= 0;
+            E_pc_out4 <= 0;
+            E_imm_ext <= 0;
+            E_r_out1 <= 0;
+            E_r_out2 <= 0;
+            E_type_control <= 0;
+            E_rd <= 0;
+            E_ra <= 0;
+            E_rb <= 0;
+            E_opcode <= 0;
+        end
+
+
+  ```
+- Makes PC_en, F_D_reg_en and D_E_reg_en low: instructions in fetch, and decode stall.
+
+#### Comments + verilator limitation
+
+Load stalls occur in physical cpu's because there is a delay on getting the data out the memory block, so it cant then be forwarded to the execute block as there won't be enough time for it to get there before the next tick.
+A stall is used to hold back the instruction in execute - insert a noop bubble where it was - and allow the load instruction to move into the writeback stage - where it can be forwarded into the execute stage.
+
+Verilator doesnt simulate these propagation delays - which means that it 'passes' all load hazard tests without stalling. However conceptually it is very important to implement to understand, so I implemented.
+
+##### So how did I know it was stalling and passing instead of just not stalling and passing?
+
+I wouldnt just b happy with all the tests passing - I needed to check that all the stalls that should occur, had occured. I used gtkwave to track the number of no-op signals and compared this to the expected number of stalls from the program.
+My implementation met this expectation which signals that it was correctly implementing the stalls - behaving like a real cpu, with timing closure in mind.
+
 
 ### Custom Hazard Testing Scripts
-- Wrote custom automated test programs and scripts to stress hazard behavior.
-- Covered:
-  - Back-to-back dependent ALU operations  
-  - Load-use cases  
-  - Mixed ALU/memory/branch dependency chains  
-- **Recommended additions:**  
-  - Insert link to hazard test scripts directory.  
-  - Add waveform screenshot showing forwarding and stall timing.
+Hazards by nature are rare exceptions that need to be handled correctly to ensure that the processor performs accurately and consistently with ALL possible commands, it is essential that it is extremely well teste to ensure it correctly handles all cases. It is for this reason I developed a directory containing my own custom assembly instructions - aiming to ramp up in complexity and target different potential weaknesses until Im confident the hazard unit functions correctly
+I targeted potential bug-points such as:
+- forwarding into either register or both
+- checking mem forward priority is implemented
+- checking forwarding occurs correctly for data AND address for load and store instruction
+- continuous rewrites to the same register
+- load hazards
+- multiple sequential loads with a dependent instruction after
+- multiple instructions dependent on a single load
+
+After this I modified the provided verify.cpp and doit.sh to run and test the cpu with those assembly files I developed, storing the output waveform in its own folder.
+This was very helpful and enabled me to pinpoint issues in the cpu quickly, other team members later adopted these scripts and used it to test the cpu with their own custom assembly instructions.
 
 ---
 
 ### Control Hazard Debugging (with Adil)
 - Assisted in diagnosis and correction of control-hazard behavior in branch and jump sequences.
 - Verified the interactions between pipeline flush logic, PC selection, and instruction fetch.
-- Contributed to debugging issues involving:
-  - Incorrect PC redirection
-  - Early/late flush events
-  - Jump target generation
-- **Recommended additions:**  
-  - Add link to commits related to control hazard fixes.  
-  - Add before/after diagrams of control logic.
+- We developed several testing programs and extensively used GTKWave to find why it was incorrectly jumping / branching
+- We identified the issue and corrected it, enabling the cpu to pass all of our own (control and data hazards) and the provided programs.
 
 
 
