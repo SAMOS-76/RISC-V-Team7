@@ -262,6 +262,12 @@ These were all done on a fully pipelined cpu and all worked correctly
 
 - **Interface Consistency**: Resolving signal naming ambiguities and polarity mismatches between modules (e.g., `memUnsigned` control signal) that caused instruction-specific bugs requiring GTKWave debugging.
 
+##### Integration Success Through Modular Development
+
+Our strategy of isolating and thoroughly testing individual modules before integration proved essential to the project's success. Each team member developed and verified their components independently using comprehensive unit tests, ensuring correct functionality before system-level assembly. This modular approach enabled parallel development across multiple extensions simultaneously - with in person code reviews of modules to ensure each member gained insight into each feature. 
+
+ This collaborative workflow demonstrated our team coordination, with clear interfaces and regular communication ensuring smooth integration of complex features into a fully functional enhanced, pipelined CPU.
+
 
 ---
 
