@@ -431,7 +431,7 @@ Passed all of our own, and all provided tests:
 
 ### Collaboration & Documentation
 - Clean module interfaces for team integration
-- Detailed documentation of module specifications and ports (lucid-notes)
+- Detailed documentation of module specifications and ports on the top level(lucid-notes)
 - Effective Git branching workflow on shared project
 - Clear commit messages and inline code documentation
 - Strong communication and project management:
