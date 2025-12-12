@@ -98,7 +98,7 @@ The brief issued a deisgnated memory map, making memory allocation and mangement
 # **Pipelining**
 
 **Adil** and myself designed independent stages (F/D/E/M/W) to increase clarity and testability for our pipelined CPU - **a7c8ba7**.
-This led to me designing key Vbuddy tests  with hotswap bash scripts, all run from /tb/vbuddy_tests folder. (Most files in here will have my commit DNA)
+This led to me designing key Vbuddy tests  with hotswap bash scripts, all run from ```/tb/vbuddy_tests folder```.
 - ```1./f1.sh``` for the F1 test
 - hotswap `./pdf.sh <distribution>` e.g. ```./pdf gaussian```
 
@@ -122,7 +122,10 @@ if (!plot_trigger && top->a0 != idle_a0) {
 ![alt text](<Screenshot 2025-12-12 152723.jpg>)
 *vbuddy displaying pdf plot*
 
-As stages were built up, I continued to test and integrate the main CPU to ensure we could pass all the tests required in the brief, previous tests had to be revised as our CPU became more complex. 
+I also allowed the rotary encode push button to hook up to our CPU's trigger and pass through to hazard unit to pause the pipeline. 
+Of course using ```top->trigger``` and some improved testbenching to detect the button switch. 
+
+As stages were built up, I continued to test and integrate the main CPU to ensure we could pass all the tests required in the brief, previous tests had to be revised as our CPU became more complex ythrough Pipelining. 
 
 
 
