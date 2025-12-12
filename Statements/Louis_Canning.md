@@ -68,7 +68,7 @@ lh   rd  imm(rs1)
 <img width="414" height="308" alt="image" src="https://github.com/user-attachments/assets/aef75c74-7536-4e28-ab87-639cb00c81e2" />
 
 
-**Commit:** [Top level debug](https://github.com/SAMOS-76/RISC-V-Team7/commit/1eb67f8c9796f942b4225ac20abad4cb5b40a267)
+#### **Commit:** [Top level debug](https://github.com/SAMOS-76/RISC-V-Team7/commit/1eb67f8c9796f942b4225ac20abad4cb5b40a267)
 
 ---
 
