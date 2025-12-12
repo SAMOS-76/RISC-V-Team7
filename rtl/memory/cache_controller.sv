@@ -55,10 +55,11 @@ module cache_controller #(
 );
 
 //fsm
-    typedef enum logic [1:0] {
+    typedef enum logic [2:0] {
         IDLE,
         WRITEitBack,
-        ALLOCit
+        ALLOCit,
+        PREFETCHit
     } cache_state_t;
 
     cache_state_t state, next_state;
@@ -69,6 +70,14 @@ module cache_controller #(
     logic [1:0] miss_type_control;
     logic miss_write_en;
     logic miss_sign_ext;
+
+    //prefetch control
+    logic prefetch_needed;
+    /* verilator lint_off UNUSED */
+    logic [ADDR_WIDTH-1:0] prefetch_addr;
+    /* verilator lint_on UNUSED */
+    logic [TAG_BITS-1:0] prefetch_tag;
+    logic [INDEX_BITS-1:0] prefetch_index;
 
     logic [TAG_BITS-1:0] tag;
     logic [INDEX_BITS-1:0] index;
@@ -89,8 +98,13 @@ module cache_controller #(
     assign tag = current_addr[ADDR_WIDTH-1:INDEX_BITS+2];
     assign index = current_addr[INDEX_BITS+1:2];
 
-    assign L1_read_index = index;
-    assign L1_write_index = index;
+    //prefetch next sequential line (increment by line size = 4 bytes)
+    assign prefetch_addr = miss_addr + 4;
+    assign prefetch_tag = prefetch_addr[ADDR_WIDTH-1:INDEX_BITS+2];
+    assign prefetch_index = prefetch_addr[INDEX_BITS+1:2];
+
+    assign L1_read_index = (state == PREFETCHit) ? prefetch_index : index;
+    assign L1_write_index = (state == PREFETCHit) ? prefetch_index : index;
 
     //hit dtect
     logic hit_way0, hit_way1, hit;
@@ -109,6 +123,9 @@ module cache_controller #(
 
     logic victim_way;
     logic evict_dirty;
+    logic prefetch_hit_way0, prefetch_hit_way1, prefetch_hit;
+    logic prefetch_victim_way;
+    logic prefetch_evict_dirty;
 
     always_comb begin
         if (!L1_valid_way0)
@@ -122,6 +139,24 @@ module cache_controller #(
         evict_dirty = (victim_way == 1'b0) ?
                       (L1_valid_way0 && L1_dirty_way0) :
                       (L1_valid_way1 && L1_dirty_way1);
+
+        //prefetch hit detection
+        prefetch_hit_way0 = L1_valid_way0 && (L1_tag_way0 == prefetch_tag);
+        prefetch_hit_way1 = L1_valid_way1 && (L1_tag_way1 == prefetch_tag);
+        prefetch_hit = prefetch_hit_way0 || prefetch_hit_way1;
+
+        // prefetch victim selection
+        if (!L1_valid_way0)
+            prefetch_victim_way = 1'b0;
+        else if (!L1_valid_way1)
+            prefetch_victim_way = 1'b1;
+        else
+            prefetch_victim_way = L1_lru_bit;
+
+        //prefetch eviction check
+        prefetch_evict_dirty = (prefetch_victim_way == 1'b0) ?
+                               (L1_valid_way0 && L1_dirty_way0) :
+                               (L1_valid_way1 && L1_dirty_way1);
     end
 
     //state reg
@@ -136,6 +171,7 @@ module cache_controller #(
     always_comb begin
         next_state = state;
         stall = 1'b0;
+        prefetch_needed = 1'b0;
 
         case (state)
             IDLE: begin
@@ -155,8 +191,20 @@ module cache_controller #(
             end
 
             ALLOCit:begin
+                //after allocating the missed line, prefetch next line if not already present
+                if (!prefetch_hit && !prefetch_evict_dirty) begin
+                    next_state = PREFETCHit;
+                    prefetch_needed = 1'b1;
+                    stall = 1'b1;  //complete allocation cycle
+                end else begin
+                    next_state = IDLE;
+                    stall = 1'b1;
+                end
+            end
+
+            PREFETCHit: begin
                 next_state = IDLE;
-                stall = 1'b1;
+                stall = 1'b0;  //prefetch doesn't stall CPU
             end
 
             default: next_state = IDLE;
@@ -209,6 +257,10 @@ module cache_controller #(
                 write_to_mem = 1'b0;
             end
 
+            PREFETCHit: begin
+                write_to_mem = 1'b0;
+            end
+
             default: begin
                 write_to_mem = 1'b0;
             end
@@ -217,7 +269,9 @@ module cache_controller #(
 
     assign mem_write_en = write_to_mem;
     assign mem_type_control = write_type;
-    assign mem_addr = write_to_mem ? write_addr : current_addr;
+    //for prefetch, read next line address
+    assign mem_addr = (state == PREFETCHit) ? {prefetch_tag, prefetch_index, 2'b00} :
+                      (write_to_mem ? write_addr : current_addr);
     assign mem_din = write_to_mem ? write_data : current_din;
     assign mem_sign_ext = current_sign_ext;
 
@@ -340,6 +394,21 @@ module cache_controller #(
             end
             L1_write_lru = 1'b1;
             L1_lru_value = ~victim_way;
+        end else if (state == PREFETCHit && prefetch_needed) begin
+            //prefetch: allocate next line if not present, mark as clean (not dirty)
+            if (prefetch_victim_way == 1'b0) begin
+                L1_write_en_way0 = 1'b1;
+                L1_write_data_way0 = mem_dout;
+                L1_write_tag_way0 = prefetch_tag;
+                L1_write_dirty_way0 = 1'b0;  //prefetched data is clean
+            end else begin
+                L1_write_en_way1 = 1'b1;
+                L1_write_data_way1 = mem_dout;
+                L1_write_tag_way1 = prefetch_tag;
+                L1_write_dirty_way1 = 1'b0;  //prefetched data is clean
+            end
+            L1_write_lru = 1'b1;
+            L1_lru_value = ~prefetch_victim_way;
         end
     end
 
