@@ -141,7 +141,7 @@ As stages were built up, I continued to test and integrate the main CPU to ensur
 
 
 # Cache - Single Cycle Exploration
-**in Cache-noPPL branch**
+**in Cache-Single-Cycle branch**
 
 While the team focused on pipelining, I proactively explored cache implementation to ensure adequate development time before the deadline. This proved architecturally challenging, as our single-cycle CPU relied on an idealised combinational main memory with near-zero latency - a design assumption that makes realistic memory architectures hard. 
 
@@ -518,7 +518,7 @@ I then helped to integrate everyone's ```enhanced``` feature modules and my cach
 ---
 
 ## Prefetching
-**in prefetch-attempt Branch**
+**in Cache-Prefetch Branch**
 
 Although the cache hadn't been fully debugged, I was fascinated with optimization techniques as I had already tried to stretch myself in single cycle with 4-word burst to utilize better spatial locality also. So I added prefetch infrastructure on a separate branch for our pipelined version.
 
