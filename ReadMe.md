@@ -23,10 +23,10 @@ We developed 5 distinct CPUs: a single-cycle processor, pipelined RV32IM, pipeli
 
 | Name | Personal Statement |
 |------|-------------------|
-| Samuel Amos-Osebeyo | [Statement](./personal%20statements/) |
-| Louis Canning | [Statement](./personal%20statements/) |
-| Archie Kendall | [Statement](./personal%20statements/) |
-| Adil Shah | [Statement](./personal%20statements/) |
+| Samuel Amos-Osebeyo | [Statement](Statements/Samuel Amos-Osebeyo.md) |
+| Louis Canning | [Statement](Statements/Louis_Canning.md) |
+| Archie Kendall | [Statement](Statements/Archie_Kendall.md) |
+| Adil Shah | [Statement](Statements/Adil_Shah.md) |
 
 </div>
 
