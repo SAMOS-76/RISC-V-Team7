@@ -15,18 +15,29 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Prepare output directory
-        run: mkdir -p build/readme
+        run: mkdir -p build
 
       - name: Markdown to PDF and HTML
         uses: BaileyJM02/markdown-to-pdf@v1.2.0
         with:
-          input_path: ReadMe.md
-          output_dir: build/readme
+          input_path: ./ReadMe.md
+          output_dir: build
           build_html: true
           build_pdf: true
+
+      - name: Show generated files
+        run: |
+          echo "PWD: $(pwd)"
+          ls -la
+          echo "Workspace files:"
+          find . -maxdepth 3 -type f | sort
 
       - name: Upload converted files
         uses: actions/upload-artifact@v4
         with:
           name: readme-pdf-html
-          path: build/readme
+          path: |
+            build
+            ReadMe.pdf
+            ReadMe.html
+          if-no-files-found: error
