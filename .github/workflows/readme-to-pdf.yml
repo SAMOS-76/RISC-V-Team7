@@ -1,0 +1,29 @@
+name: ReadMe to PDF/HTML
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "ReadMe.md"
+      - ".github/workflows/readme-to-pdf.yml"
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Markdown to PDF and HTML
+        uses: BaileyJM02/markdown-to-pdf@v1.2.0
+        with:
+          input_path: ReadMe.md
+          output_dir: build/readme
+          build_html: true
+          build_pdf: true
+
+      - name: Upload converted files
+        uses: actions/upload-artifact@v4
+        with:
+          name: readme-pdf-html
+          path: build/readme
