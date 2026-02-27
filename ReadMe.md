@@ -1,5 +1,7 @@
 # RISC-V 32IM CPU
 
+<img width="6559" height="3911" alt="ICA-ALAS-EXAMPLE - final" src="https://github.com/user-attachments/assets/24a81738-b77e-49d5-baad-2ffe94fb6283" />
+
 ## Introduction
 We developed 5 distinct CPUs: a single-cycle processor, pipelined RV32IM, pipelined with cache, pipelined with branch prediction and a pipelined CPU that combines all cache multiply & branch prediction capabilities.
 
